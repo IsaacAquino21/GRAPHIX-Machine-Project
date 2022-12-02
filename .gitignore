@@ -1,4 +1,4 @@
 
 *.vsidx
-vs/
+.vs/
 x64/
