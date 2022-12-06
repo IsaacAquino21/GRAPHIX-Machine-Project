@@ -34,6 +34,9 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    /* Initialize glad */
+    gladLoadGL();
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
