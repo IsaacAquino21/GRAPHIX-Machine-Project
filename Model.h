@@ -1,11 +1,7 @@
 #pragma once
 
-#include "MyShader.h"
-
 class Model {
 public:
-    /* Stores the shader of the Model */
-    MyShader shader;
 
     /* Initialize VAO and VBO id vars */
     GLuint VAO, VBO;
@@ -18,9 +14,8 @@ public:
      *
      * Parameters:
      * const char* objFilename - Code from our vertex shader file
-     * MyShader shaderSource - Code from our fragment shader file
      */
-	Model(const char* objFilename, MyShader shaderSource) : shader(shaderSource) {
+	Model(const char* objFilename) {
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
         std::string warning, error;
@@ -130,15 +125,11 @@ public:
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
 	}
     
     /* This method sets the current VAO and shaderProgram then draw the OBJ */
     void draw() {
         glBindVertexArray(VAO);
-        shader.useProgram();
 
         // draws the obj with regards to the operations applied
         glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);

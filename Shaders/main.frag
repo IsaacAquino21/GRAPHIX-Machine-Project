@@ -1,6 +1,7 @@
 #version 330 core // version
 
 uniform sampler2D tex0;
+uniform sampler2D tex1;
 
 uniform vec3 lightPos;
 uniform vec3 lightColor;
@@ -64,7 +65,10 @@ void main(){
 
     //formula for intensity: 1/distance^2
     float intensity = 2.0f;
+
+	vec4 texture1 = texture(tex0, texCoord);
+	vec4 texture2 = texture(tex1, texCoord);
     
     //apply intensity to specular, diffuse and ambient light
-    FragColor = vec4((specColor + diffuse + ambientCol) * attentuation * intensity, 1.0f) * texture(tex0, texCoord);
+    FragColor = vec4((specColor + diffuse + ambientCol) * attentuation * intensity, 1.0f) * mix(texture2, texture1, 0.6);
 }
