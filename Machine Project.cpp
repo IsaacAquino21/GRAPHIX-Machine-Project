@@ -221,14 +221,13 @@ int main(void)
         glm::mat4 sky_view = glm::mat4(1.f);
         sky_view = glm::mat4(glm::mat3(view));
 
+        skyboxShader.useProgram();
         skyboxShader.setMat4("view", sky_view);
         skyboxShader.setMat4("projection", projection);
 
 
         glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
-
-        skyboxShader.useProgram();
 
         glBindVertexArray(skybox.getVAO());
         glActiveTexture(GL_TEXTURE0);
