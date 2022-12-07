@@ -1,6 +1,6 @@
 # Blender v2.77 (sub 0) OBJ File: 'Shark.blend'
 # www.blender.org
-mtllib Shark.mtl
+mtllib SharkV1.mtl
 o Shark_01SG1_Untitled
 v 0.043686 1.727948 -7.042703
 v 0.039636 1.780747 -7.263496
