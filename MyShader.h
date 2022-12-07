@@ -17,7 +17,20 @@ public:
 	 * const char* v - Code from our vertex shader file
 	 * const char* f - Code from our fragment shader file
 	 */
-	MyShader(const char* v, const char* f) {
+	MyShader(const char* vName, const char* fName) {
+		/* Loading of vertex and fragment shaders from file */
+		std::fstream vertSrc(vName);
+		std::stringstream vertBuff;
+		vertBuff << vertSrc.rdbuf();
+		std::string vertS = vertBuff.str();
+		const char* v = vertS.c_str();
+
+		std::fstream fragSrc(fName);
+		std::stringstream fragBuff;
+		fragBuff << fragSrc.rdbuf();
+		std::string fragS = fragBuff.str();
+		const char* f = fragS.c_str();
+
 		/* Creating vertex and fragment shaders */
 		GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertShader, 1, &v, NULL);
