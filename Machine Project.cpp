@@ -83,7 +83,10 @@ int main(void)
 
     SkyboxTexture skybox_uwTexture = SkyboxTexture(faceSkybox);
 
-    Model playerModel = Model("3D/Odyssey/Odyssey.obj");
+    Model playerModel = Model("3D/Odyssey/Odyssey.obj", 0);
+    Model enemy1Model = Model("3D/Submarine.obj", 1);
+    Model enemy2Model = Model("3D/MossyRocks.obj", 2);
+    //Model enemy3Model = Model("3D/Mine.obj", 3);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -179,6 +182,40 @@ int main(void)
 
         // Draw VAO
         playerModel.draw();
+
+        /* Submarine */
+        transform = glm::mat4(1.0f);
+        transform = glm::translate(transform, glm::vec3(7.5f, -2.5f, 7.5f));
+        transform = glm::scale(transform, glm::vec3(0.0025f));
+        transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+        modelShader.useProgram();
+        modelShader.setMat4("transform", transform);
+
+        enemy1Model.draw();
+        for (int i = -5; i < 5; i++) {
+            /* Enemy 2 - Stones */
+            transform = glm::mat4(1.0f);
+            transform = glm::translate(transform, glm::vec3(10.0f * i, -20.0f, -5.0f * i));
+            transform = glm::scale(transform, glm::vec3(1.0f));
+            transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+            modelShader.useProgram();
+            modelShader.setMat4("transform", transform);
+
+            enemy2Model.draw();
+        }
+
+        /* Enemy 3 - AkulaClassAtackSubmarine */
+        /*transform = glm::mat4(1.0f);
+        transform = glm::translate(transform, glm::vec3(-7.5f, 5.5f, -7.5f));
+        transform = glm::scale(transform, glm::vec3(0.01f));
+        transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+        modelShader.useProgram();
+        modelShader.setMat4("transform", transform);
+
+        enemy3Model.draw();*/
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
