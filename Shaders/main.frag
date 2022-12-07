@@ -2,6 +2,7 @@
 
 uniform sampler2D tex0;
 uniform sampler2D tex1;
+uniform sampler2D norm_tex;
 
 uniform vec3 lightPos;
 uniform vec3 lightColor;
@@ -28,6 +29,9 @@ in vec3 normCoord;
 
 // world space
 in vec3 fragPos;
+
+// tangent, bitangent, normal
+in mat3 TBN;
 
 out vec4 FragColor;
 
@@ -64,11 +68,11 @@ void main(){
     float attentuation = 1 / (1.0f + 0.045f * distance + 0.0075f * (distance * distance));
 
     //formula for intensity: 1/distance^2
-    float intensity = 2.0f;
+    float intensity = 6.0f;
 
-	vec4 texture1 = texture(tex0, texCoord);
-	vec4 texture2 = texture(tex1, texCoord);
+	vec4 texture0 = texture(tex0, texCoord);
+	vec4 texture1 = texture(tex1, texCoord);
     
     //apply intensity to specular, diffuse and ambient light
-    FragColor = vec4((specColor + diffuse + ambientCol) * attentuation * intensity, 1.0f) * mix(texture2, texture1, 0.6);
+    FragColor = vec4((specColor + diffuse + ambientCol) * attentuation * intensity, 1.0f) * mix(texture1, texture0, 0.6);
 }

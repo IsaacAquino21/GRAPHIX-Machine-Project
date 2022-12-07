@@ -63,8 +63,9 @@ int main(void)
 
     MyShader skyboxShader = MyShader("Shaders/skybox.vert", "Shaders/skybox.frag");
 
-    MyTexture modelTexture = MyTexture("3D/OdysseyHullTexture.png", false);
-    MyTexture lightsTexture = MyTexture("3D/OdysseyHullEmissive.png", false);
+    MyTexture modelTexture = MyTexture("3D/Odyssey/OdysseyHullTexture.png", false);
+    MyTexture normTexture = MyTexture("3D/Odyssey/OdysseyHullNormal.png", false);
+    MyTexture lightsTexture = MyTexture("3D/Odyssey/OdysseyHullEmissive.png", false);
 
     /* Create Skybox */
     Skybox skybox = Skybox();
@@ -72,17 +73,17 @@ int main(void)
     /* Create texture for skybox */
     //underwater textures
     std::string faceSkybox[]{
-        "Skybox/uw_lf.jpg", //left
-        "Skybox/uw_rt.jpg", //right
+        "Skybox/uw_ft.jpg", //front
+        "Skybox/uw_bk.jpg", //back
         "Skybox/uw_up.jpg", //up
         "Skybox/uw_dn.jpg", //down
-        "Skybox/uw_ft.jpg", //front
-        "Skybox/uw_bk.jpg"  //back
+        "Skybox/uw_rt.jpg", //right
+        "Skybox/uw_lf.jpg", //left
     };
 
     SkyboxTexture skybox_uwTexture = SkyboxTexture(faceSkybox);
 
-    Model model = Model("3D/Odyssey.obj");
+    Model playerModel = Model("3D/Odyssey/Odyssey.obj");
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -102,18 +103,18 @@ int main(void)
     float scale = 0.005f;
 
     // Position of Light
-    glm::vec3 lightPos = glm::vec3(0, -10, 0);
+    glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 5.0f);
     // Light color
     glm::vec3 lightColor = glm::vec3(1, 1, 1);
 
     // Ambient Strength
-    float ambientStr = 0.25f;
+    float ambientStr = 0.1f;
 
     // Ambient Color
     glm::vec3 ambientColor = lightColor;
 
     // Specular Strength
-    float specStr = 0.5f;
+    float specStr = 0.05f;
 
     // Specular Phong
     float specPhong = 16;
@@ -173,10 +174,11 @@ int main(void)
         modelShader.setFloat("specStr", specStr);
         modelShader.setFloat("specPhong", specPhong);
         modelShader.setTexture("tex0", modelTexture.getTexId(), 0);
-        modelShader.setTexture("tex1", lightsTexture.getTexId(), 1);
+        modelShader.setTexture("norm_tex", normTexture.getTexId(), 1);
+        modelShader.setTexture("tex1", lightsTexture.getTexId(), 2);
 
         // Draw VAO
-        model.draw();
+        playerModel.draw();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -185,7 +187,7 @@ int main(void)
         glfwPollEvents();
     }
 
-    model.deleteBuffers();
+    playerModel.deleteBuffers();
     skybox.deleteBuffers();
 
     glfwTerminate();
