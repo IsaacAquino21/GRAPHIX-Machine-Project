@@ -22,15 +22,16 @@ public:
         0--------1
         */
         //Vertices for the cube
+        float size = 10.0f;
         float skyboxVertices[]{
-            -1.f, -1.f, 1.f, //0
-            1.f, -1.f, 1.f,  //1
-            1.f, -1.f, -1.f, //2
-            -1.f, -1.f, -1.f,//3
-            -1.f, 1.f, 1.f,  //4
-            1.f, 1.f, 1.f,   //5
-            1.f, 1.f, -1.f,  //6
-            -1.f, 1.f, -1.f  //7
+            -size, -size, size, //0
+            size, -size, size,  //1
+            size, -size, -size, //2
+            -size, -size, -size,//3
+            -size, size, size,  //4
+            size, size, size,   //5
+            size, size, -size,  //6
+            -size, size, -size  //7
         };
 
         //Skybox Indices
@@ -61,28 +62,11 @@ public:
 
         glBindVertexArray(skyboxVAO);
         glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-
-        glBufferData(
-            GL_ARRAY_BUFFER,
-            sizeof(skyboxVertices),
-            skyboxVertices,
-            GL_STATIC_DRAW);
-
-        glVertexAttribPointer(
-            0,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            3 * sizeof(GL_FLOAT),
-            (void*)0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skyboxEBO);
-        glBufferData(
-            GL_ELEMENT_ARRAY_BUFFER,
-            sizeof(GL_INT) * 36,
-            &skyboxIndices,
-            GL_STATIC_DRAW);
-
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GL_INT) * 36, &skyboxIndices, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
 	}
 
@@ -92,7 +76,7 @@ public:
         glDepthFunc(GL_LEQUAL);
 
         skyboxShader.useProgram();
-        glm::mat4 sky_view = glm::mat4(1.0f);
+        glm::mat4 sky_view = glm::mat4(1.f);
         sky_view = glm::mat4(glm::mat3(view));
 
         skyboxShader.setMat4("projection", projection);
@@ -120,7 +104,7 @@ public:
         return skyboxEBO;
     }
 
-    void cleanupSkybox() {
+    void deleteBuffers() {
         glDeleteVertexArrays(1, &skyboxVAO);
         glDeleteBuffers(1, &skyboxVBO);
         glDeleteBuffers(1, &skyboxEBO);

@@ -17,6 +17,8 @@ public:
 
 		//load image using stbi
 		int img_width, img_height, color_channels;
+
+		stbi_set_flip_vertically_on_load(true);
 		unsigned char* tex_bytes = stbi_load(
 			texName,
 			&img_width,
