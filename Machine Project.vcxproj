@@ -167,6 +167,7 @@
     </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Model.h" />
     <ClInclude Include="MyShader.h" />
     <ClInclude Include="MyTexture.h" />
     <ClInclude Include="Skybox.h" />
