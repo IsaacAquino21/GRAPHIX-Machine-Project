@@ -97,5 +97,5 @@ public:
     void subYaw(float value) {
         yaw -= value;
     }
-};
 
+};
