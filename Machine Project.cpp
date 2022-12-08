@@ -288,7 +288,6 @@ void Key_Callback(
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
             tp_camera.subPitch(cameraSpeed);
 
-
         if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
             tp_camera.subYaw(cameraSpeed);
 
