@@ -168,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="MyShader.h" />
     <ClInclude Include="MyTexture.h" />

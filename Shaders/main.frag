@@ -59,9 +59,6 @@ vec3 calcDirLight(vec3 lightPos, vec3 lightColor, float ambientStr, vec3 ambient
 void main(){
 	// Normalize the received normals
 	vec3 normal = normalize(normCoord);
-
-	// Get the difference of the light to the fragment
-	vec3 lightDir = normalize(lightPos - fragPos);
     
 	// Get our view direction from the camera to the fragment
     vec3 viewDir = normalize(cameraPos - fragPos);
@@ -79,10 +76,8 @@ void main(){
     FragColor = vec4(finalColor, 1.0f) * mix(texture1, texture0, 0.6);
 }
 
-
 /* This function calculates the light contribution of the Point light to the object */
 vec3 calcPointLight(vec3 lightPos, vec3 lightColor, float ambientStr, vec3 ambientColor, float specStr, float specPhong, vec3 normal, vec3 viewDir){
-    
     vec3 lightDir = normalize(lightPos - fragPos);
 
     float diff = max(
@@ -117,7 +112,6 @@ vec3 calcPointLight(vec3 lightPos, vec3 lightColor, float ambientStr, vec3 ambie
 
 /* This function calculates the light contribution of the Directional light to the object */
 vec3 calcDirLight(vec3 lightPos, vec3 lightColor, float ambientStr, vec3 ambientColor, float specStr, float specPhong, vec3 normal, vec3 viewDir){
-    
     vec3 lightDir = normalize(lightPos - fragPos);
 
     float diff = max(
@@ -138,6 +132,6 @@ vec3 calcDirLight(vec3 lightPos, vec3 lightColor, float ambientStr, vec3 ambient
 
     vec3 specCol = spec * specStr * lightColor;
 
-    //return combined values with applied intensity
+    //return combined value with applied intensity
     return (diffuse + ambientCol + specCol) * intensity2;
 }

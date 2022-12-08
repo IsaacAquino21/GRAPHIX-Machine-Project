@@ -15,37 +15,65 @@
 #include "Model.h"
 #include "Perspective.h"
 #include "Orthographic.h"
+#include "Light.h"
 
 /* Screen Resolution */
 float screenWidth = 900.0f;
 float screenHeight = 900.0f;
 
+/* Global Variables used for switching view and projection */
 float view_select = 0;
-
 glm::mat4 curr_view;
 glm::mat4 curr_projection;
-
 glm::vec3 curr_cameraPos;
 
-glm::mat4 projection = glm::perspective(
-    glm::radians(60.0f),
-    screenHeight / screenWidth, //aspect ratio
-    0.1f, //0 < zNear < zFar
-    1000.0f
-); 
+/* Light Instances */
+Light pointLight = Light(
+    glm::vec3(0.0f, 10.0f, 5.0f),
+    glm::vec3(1, 1, 1),
+    0.1f,
+    glm::vec3(1, 1, 1),
+    0.05f,
+    16
+);
 
-Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 10.0f, 0.0f),
-    glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), -10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
+Light directionalLight = Light(
+    glm::vec3(0.0f, 10.0f, 5.0f),
+    glm::vec3(1, 1, 1),
+    0.1f,
+    glm::vec3(1, 1, 1),
+    0.05f,
+    16
+);
 
+/* Camera Instances */
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
+Orthographic ortho_cam = Orthographic(
+    glm::vec3(0.0f, 15.0f, 0.0f),
+    glm::vec3(0.0f, 0.0f, -1.0f), 
+    glm::vec3(0.0f, 0.0f, 0.0f), 
+    -10.0f, 
+    10.0f, 
+    -10.0f, 
+    10.0f, 
+    0.0f, 
+    100.0f
+);
+
 Perspective tp_camera = Perspective(glm::vec3(-8.0f, 2.0f, 0.0f),
-    glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), screenHeight, screenWidth,
-    60.0f, 0.1f, 50.0f);
+    glm::vec3(0.0f, 1.0f, 0.0f), 
+    glm::vec3(0.0f, 0.0f, 1.0f), 
+    screenHeight, 
+    screenWidth,
+    60.0f, 
+    0.1f, 
+    50.0f
+);
 
 double last_x, last_y;
-float yaw = -90.0f, pitch = -30.0f;
 bool button_down = false; // used for checking if mouse is clicked
 
+/* Function Prototypes */
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods);
 void Mouse_Callback(GLFWwindow* window, int button, int action, int mods);
 void Cursor_Callback(GLFWwindow* window, double xpos, double ypos);
@@ -129,23 +157,6 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    // Position of Light
-    glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
-    // Light color
-    glm::vec3 lightColor = glm::vec3(1, 1, 1);
-
-    // Ambient Strength
-    float ambientStr = 0.1f;
-
-    // Ambient Color
-    glm::vec3 ambientColor = lightColor;
-
-    // Specular Strength
-    float specStr = 0.05f;
-
-    // Specular Phong
-    float specPhong = 16;
-
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -188,22 +199,29 @@ int main(void)
             shader.useProgram();
             shader.setMat4("projection", curr_projection);
             shader.setMat4("view", curr_view);
-            shader.setVec3("lighPos", lightPos);
-            shader.setVec3("lightColor", lightColor);
-            shader.setFloat("ambientStr", ambientStr);
-            shader.setVec3("ambientColor", ambientColor);
             shader.setVec3("cameraPos", tp_camera.getCameraPos());
-            shader.setFloat("specStr", specStr);
-            shader.setFloat("specPhong", specPhong);
+            shader.setVec3("lightPos", pointLight.getLightPos());
+            shader.setVec3("lightColor", pointLight.getLightColor());
+            shader.setFloat("ambientStr", pointLight.getAmbientStr());
+            shader.setVec3("ambientColor", pointLight.getAmbientColor());
+            shader.setFloat("specStr", pointLight.getSpecularStrength());
+            shader.setFloat("specPhong", pointLight.getSpecularPhong());
+            shader.setFloat("intensity", pointLight.getIntensity());
+            shader.setVec3("lightPos2", directionalLight.getLightPos());
+            shader.setVec3("lightColor2", directionalLight.getLightColor());
+            shader.setFloat("ambientStr2", directionalLight.getAmbientStr());
+            shader.setVec3("ambientColor2", directionalLight.getAmbientColor());
+            shader.setFloat("specStr2", directionalLight.getSpecularStrength());
+            shader.setFloat("specPhong2", directionalLight.getSpecularPhong());
+            shader.setFloat("intensity2", directionalLight.getIntensity());
         }
 
         // Draw VAO
         playerModel.draw();
 
         /* Loop each enemy model and render based on default position, scale, and rotation */
-        for (Model enemyModel : enemyModels) {
-            enemyModel.draw();
-        }
+        for (Model enemyModel : enemyModels) enemyModel.draw(); 
+
         /* Render 10 fixed mines around the world*/
         /*for (int i = 0; i < 10; i++) {
             transform = glm::mat4(1.0f);
@@ -246,35 +264,53 @@ void Key_Callback(
 ) {
     const float cameraSpeed = 0.1f;
 
-    if (view_select == 0) {
-        // movement of camera
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            tp_camera.moveForward(cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        view_select = 0;
+    }
+    
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+        pointLight.cycleIntensity();
+    }
+    // movement of camera
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        tp_camera.moveForward(cameraSpeed);
+        
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        tp_camera.moveBackward(cameraSpeed);
+       
+        
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        tp_camera.moveLeft(cameraSpeed);
+       
+        
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        tp_camera.moveRight(cameraSpeed);
+        
+        
 
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            tp_camera.moveBackward(cameraSpeed);
+    // rotation of camera
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        tp_camera.addPitch(cameraSpeed);
+        
+        
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        tp_camera.subPitch(cameraSpeed);
+       
 
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            tp_camera.moveLeft(cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        tp_camera.subYaw(cameraSpeed);
+        
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        tp_camera.addYaw(cameraSpeed);
+        
 
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            tp_camera.moveRight(cameraSpeed);
-
-        // rotation of camera
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-            tp_camera.addPitch(cameraSpeed);
-
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-            tp_camera.subPitch(cameraSpeed);
-
-        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-            tp_camera.subYaw(cameraSpeed);
-
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-            tp_camera.addYaw(cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        view_select = 0;
     }
 
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) view_select = 1;
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {    
+        view_select = 1; 
+    }
 
     if (view_select == 1) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -316,7 +352,7 @@ void Mouse_Callback(
             button_down = true;
         }
         // if left mouse button is released, set button_down flag to false
-        if (action == GLFW_RELEASE) button_down = false;
+        else if (action == GLFW_RELEASE) button_down = false;
     }
 }
 
