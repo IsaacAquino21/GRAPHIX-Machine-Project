@@ -28,17 +28,15 @@ public:
             zFar //zFar
         );
 
-        printf("%f %f %f \n", left, right , bottom);
+        printf("%f %f %f \n", left, right, bottom);
         printf("%f %f %f \n", top, zNear, zFar);
-       
+
     }
 
     glm::mat4 getProjection() {
         char print[10] = "good";
         printf("%s ", print);
         return projection;
-        
-        
     }
 
     glm::mat4 getView() {
@@ -47,7 +45,5 @@ public:
         return view;
     }
 
-    
+
 };
-
-

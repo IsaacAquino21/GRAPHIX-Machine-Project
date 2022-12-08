@@ -26,6 +26,8 @@ float view_select = 0;
 glm::mat4 curr_view;
 glm::mat4 curr_projection;
 
+glm::vec3 curr_cameraPos;
+
 
 glm::mat4 projection = glm::perspective(
     glm::radians(60.0f),
@@ -37,18 +39,14 @@ glm::mat4 projection = glm::perspective(
 Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 15.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), -10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
 
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
-Perspective tp_camera = Perspective(glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), screenHeight, screenWidth,
-    60.0f,0.1f, 1000.0f);
-
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Perspective tp_camera = Perspective(cameraPos,
+    cameraUp, cameraFront, screenHeight, screenWidth,
+    60.0f, 0.1f, 1000.0f);
 
 double last_x, last_y;
 float yaw = -90.0f, pitch = -30.0f;
@@ -117,11 +115,7 @@ int main(void)
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    
-    //Temp - remove later
-    //projection
-    
-    
+        
     float x, y, z;
     x = y = z = 0.0f;
 
@@ -150,33 +144,17 @@ int main(void)
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        if (pitch > 89.0f)
-            pitch = 89.0f;
-        if (pitch < -89.0f)
-            pitch = -89.0f;
-
-        glm::vec3 direction;
-        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        direction.y = sin(glm::radians(pitch));
-        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        // re-calculates the cameraFront based on the yaw and pitch
-        cameraFront = glm::normalize(direction);
-        
-        /* View matrix*/
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        tp_camera.recalculateFront();
+        tp_camera.recalculateViewMatrix();
 
         if (view_select == 0) {
-            curr_view = view;
-            curr_projection = projection;
+            curr_view = tp_camera.getView();
+            curr_projection = tp_camera.getProjection();
         }
         if (view_select == 1) {
             curr_view = ortho_cam.getView();
             curr_projection = ortho_cam.getProjection();
         }
-
-        /*tp_camera.recalculateFront();
-        tp_camera.recalculateViewMatrix();*/
 
         glm::mat4 transform = glm::mat4(1.0f);
         transform = glm::translate(transform, glm::vec3(x, y, z));
@@ -280,38 +258,38 @@ void Key_Callback(
 
     // movement of camera
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        //tp_camera.moveForward(cameraSpeed);
-        cameraPos += cameraSpeed * cameraFront; // moves forward
+        tp_camera.moveForward(cameraSpeed);
+        
         
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        //tp_camera.moveBackward(cameraSpeed);
-        cameraPos -= cameraSpeed * cameraFront; // moves backward
+        tp_camera.moveBackward(cameraSpeed);
+       
         
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        //tp_camera.moveLeft(cameraSpeed);
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the left
+        tp_camera.moveLeft(cameraSpeed);
+       
         
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        //tp_camera.moveRight(cameraSpeed);
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the right
+        tp_camera.moveRight(cameraSpeed);
+        
         
 
     // rotation of camera
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        //tp_camera.addPitch(cameraSpeed);
-        pitch += cameraSpeed; // rotates upwards
+        tp_camera.addPitch(cameraSpeed);
+        
         
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        //tp_camera.subPitch(cameraSpeed);
-       pitch -= cameraSpeed; // rotates downwards
+        tp_camera.subPitch(cameraSpeed);
+       
 
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        //tp_camera.subYaw(cameraSpeed);
-        yaw -= cameraSpeed;   // rotates leftwards
+        tp_camera.subYaw(cameraSpeed);
+        
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         tp_camera.addYaw(cameraSpeed);
-        //yaw += cameraSpeed;   // rotates rightwards
+        
 
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
         view_select = 0;
@@ -364,12 +342,8 @@ void Cursor_Callback(
         yoffset *= sensitivity;
 
         // modifies the yaw and pitch values based on the offset of mouse movement
-        //tp_camera.addYaw(xoffset);
-        //tp_camera.addPitch(yoffset);
-        
-        yaw += xoffset;
-        pitch += yoffset;
-        
-        
+        tp_camera.addYaw(xoffset);
+        tp_camera.addPitch(yoffset);
+                    
     }
 }
