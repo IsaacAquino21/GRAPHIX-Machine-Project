@@ -46,6 +46,10 @@ glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
 double last_x, last_y;
 float yaw = -90.0f, pitch = -30.0f;
 bool button_down = false; // used for checking if mouse is clicked
@@ -276,35 +280,35 @@ void Key_Callback(
 
     // movement of camera
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        tp_camera.moveForward(cameraSpeed);
-        //cameraPos += cameraSpeed * cameraFront; // moves forward
+        //tp_camera.moveForward(cameraSpeed);
+        cameraPos += cameraSpeed * cameraFront; // moves forward
         
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        tp_camera.moveBackward(cameraSpeed);
-        //cameraPos -= cameraSpeed * cameraFront; // moves backward
+        //tp_camera.moveBackward(cameraSpeed);
+        cameraPos -= cameraSpeed * cameraFront; // moves backward
         
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        tp_camera.moveLeft(cameraSpeed);
-        //cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the left
+        //tp_camera.moveLeft(cameraSpeed);
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the left
         
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        tp_camera.moveRight(cameraSpeed);
-        //cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the right
+        //tp_camera.moveRight(cameraSpeed);
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the right
         
 
     // rotation of camera
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        tp_camera.addPitch(cameraSpeed);
-        //pitch += cameraSpeed; // rotates upwards
+        //tp_camera.addPitch(cameraSpeed);
+        pitch += cameraSpeed; // rotates upwards
         
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        tp_camera.subPitch(cameraSpeed);
-       //pitch -= cameraSpeed; // rotates downwards
+        //tp_camera.subPitch(cameraSpeed);
+       pitch -= cameraSpeed; // rotates downwards
 
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        tp_camera.subYaw(cameraSpeed);
-        //yaw -= cameraSpeed;   // rotates leftwards
+        //tp_camera.subYaw(cameraSpeed);
+        yaw -= cameraSpeed;   // rotates leftwards
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         tp_camera.addYaw(cameraSpeed);
         //yaw += cameraSpeed;   // rotates rightwards
@@ -360,12 +364,12 @@ void Cursor_Callback(
         yoffset *= sensitivity;
 
         // modifies the yaw and pitch values based on the offset of mouse movement
-        tp_camera.addYaw(xoffset);
-        tp_camera.addPitch(yoffset);
-        /*
+        //tp_camera.addYaw(xoffset);
+        //tp_camera.addPitch(yoffset);
+        
         yaw += xoffset;
         pitch += yoffset;
-        */
+        
         
     }
 }
