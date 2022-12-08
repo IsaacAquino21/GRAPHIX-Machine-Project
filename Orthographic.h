@@ -34,11 +34,6 @@ public:
     }
 
     glm::mat4 getView() {
-        return view;
+        return glm::lookAt(getCameraPos(), getCameraFront(), getCameraUp());
     }
-
-    void orthorecalViewMatrix() {
-        view = glm::lookAt(cameraPos, cameraFront, cameraUp);
-    }
-
 };

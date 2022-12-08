@@ -30,7 +30,7 @@ public:
             zFar
         );
         yaw =  0.0f;
-        pitch = -20.0f;
+        pitch = 0.0f;
     }
 
     void recalculateFront() {
@@ -46,10 +46,6 @@ public:
         direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
         // re-calculates the cameraFront based on the yaw and pitch
         cameraFront = glm::normalize(direction);
-    }
-
-    void recalculateViewMatrix() {
-         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
     }
 
     void moveForward(float cameraSpeed) {
@@ -98,5 +94,12 @@ public:
         yaw -= value;
     }
 
+    void addY(float value) {
+        cameraPos.y += value;
+    }
+
+    void subY(float value) {
+        cameraPos.y -= value;
+    }
 };
 

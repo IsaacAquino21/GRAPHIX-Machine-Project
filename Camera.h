@@ -15,14 +15,10 @@ public:
 	/* Center - where the camera is looking */
 	glm::vec3 cameraFront;
 
-	/* View Matrix */
-	glm::mat4 view;
-
 	Camera(glm::vec3 position, glm::vec3 up, glm::vec3 front) {
 		cameraPos = position;
 		cameraUp = up;
 		cameraFront = front;
-		view = glm::lookAt(cameraPos, cameraFront, cameraUp);
 	}
 
 	/** Getters **/
@@ -39,7 +35,18 @@ public:
 	}
 
 	glm::mat4 getView() {
-		return view;
+		return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	}
 
+	void setCameraPos(glm::vec3 pos) {
+		cameraPos = pos;
+	}
+
+	void setCameraFront(glm::vec3 front) {
+		cameraFront = front;
+	}
+
+	void setCameraUp(glm::vec3 up) {
+		cameraUp = up;
+	}
 };
