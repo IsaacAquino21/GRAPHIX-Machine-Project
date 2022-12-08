@@ -13,19 +13,39 @@
 #include "Skybox.h"
 #include "SkyboxTexture.h"
 #include "Model.h"
+#include "Perspective.h"
+#include "Orthographic.h"
 
 /* Screen Resolution */
 float screenWidth = 900.0f;
 float screenHeight = 900.0f;
 
+float view_select = 0;
+
+glm::mat4 curr_view;
+glm::mat4 curr_projection;
+
+glm::vec3 curr_cameraPos;
+
+
+glm::mat4 projection = glm::perspective(
+    glm::radians(60.0f),
+    screenHeight / screenWidth, //aspect ratio
+    0.1f, //0 < zNear < zFar
+    1000.0f
+); 
+
+Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 15.0f, 0.0f),
+    glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), -10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
+
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Perspective tp_camera = Perspective(glm::vec3(-8.0f, 2.0f, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), screenHeight, screenWidth,
+    60.0f, 0.1f, 50.0f);
 
 double last_x, last_y;
 float yaw = -90.0f, pitch = -30.0f;
-bool button_down = false;
+bool button_down = false; // used for checking if mouse is clicked
 
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods);
 void Mouse_Callback(GLFWwindow* window, int button, int action, int mods);
@@ -59,19 +79,12 @@ int main(void)
     glfwSetMouseButtonCallback(window, Mouse_Callback);
     glfwSetCursorPosCallback(window, Cursor_Callback);
 
-    MyShader modelShader = MyShader("Shaders/main.vert", "Shaders/main.frag");
-
     MyShader skyboxShader = MyShader("Shaders/skybox.vert", "Shaders/skybox.frag");
-
-    MyTexture modelTexture = MyTexture("3D/Odyssey/OdysseyHullTexture.png", false);
-    MyTexture normTexture = MyTexture("3D/Odyssey/OdysseyHullNormal.png", false);
-    MyTexture lightsTexture = MyTexture("3D/Odyssey/OdysseyHullEmissive.png", false);
 
     /* Create Skybox */
     Skybox skybox = Skybox();
 
-    /* Create texture for skybox */
-    //underwater textures
+    /* List of underwater textures */
     std::string faceSkybox[]{
         "Skybox/uw_ft.jpg", //front
         "Skybox/uw_bk.jpg", //back
@@ -81,34 +94,44 @@ int main(void)
         "Skybox/uw_lf.jpg", //left
     };
 
+    /* Create texture for skybox */
     SkyboxTexture skybox_uwTexture = SkyboxTexture(faceSkybox);
 
-    Model playerModel = Model("3D/Odyssey/Odyssey.obj", glm::vec3(0.0f, 0.0f, 0.0f), 0.005f, glm::vec3(90.0f, 0.0f, 0.0f));
+    MyShader modelShaders[4] = {
+        MyShader("Shaders/main.vert", "Shaders/main.frag"), // with normal mapping
+        MyShader("Shaders/noTBN.vert", "Shaders/texture2.frag"), // with 2 textures
+        MyShader("Shaders/noTBN.vert", "Shaders/texture1.frag"), // with 1 texture only
+        MyShader("Shaders/noTBN.vert", "Shaders/color.frag") // with no textures (so only color)
+    };
 
+    /* Player Model */
+    Model playerModel = Model("3D/Odyssey/Odyssey.obj", glm::vec3(0.0f, 0.0f, 0.0f), 0.005f, glm::vec3(90.0f, 0.0f, 0.0f),
+        modelShaders[1],
+        MyTexture("3D/Odyssey/OdysseyHullTexture.png", false),
+        MyTexture("3D/Odyssey/OdysseyHullEmissive.png", false)
+    );
+
+    /* Enemy Models */
     Model enemyModels[6] = {
-        Model("3D/SubmarineV1.obj", glm::vec3(7.5f, -2.5f, 7.5f), 0.0025f, glm::vec3(90.0f, 0.0f, 0.0f)),
-        Model("3D/SubmarineV2/SubmarineV2.obj", glm::vec3(-7.5f, 5.5f, -7.5f), 0.1f, glm::vec3(45.0f, 0.0f, 0.0f)),
-        Model("3D/SubmarineV3/SubmarineV3.obj", glm::vec3(20.0f, 10.0f, 20.0f), 0.001f, glm::vec3(45.0f, 90.0f, 0.0f)),
-        Model("3D/Turtle/Turtle.obj", glm::vec3(-10.0f, 20.0f, -7.5f), 0.01f, glm::vec3(90.0f, 0.0f, 0.0f)),
-        Model("3D/MossyRocks.obj", glm::vec3(20.0f, -15.0f, -7.5f), 0.01f, glm::vec3(90.0f, 0.0f, 0.0f)),
-        Model("3D/Mine.obj", glm::vec3(10.0f, -20.0f, -5.0f), 0.1f, glm::vec3(90.0f, 0.0f, 0.0f)),
+         Model("3D/SubmarineV1.obj", glm::vec3(30.5f, -2.5f, 18.5f), 0.01f, glm::vec3(45.0f, 0.0f, 0.0f), modelShaders[3]),
+        Model("3D/SubmarineV2/SubmarineV2.obj", glm::vec3(15.5f, 3.5f, 18.5f), 1.0f, glm::vec3(-30.0f, 0.0f, 0.0f), modelShaders[3]),
+        Model("3D/SubmarineV3/SubmarineV3.obj", glm::vec3(40.0f, 2.5f, -20.5f), 0.001f, glm::vec3(45.0f, 90.0f, 0.0f), modelShaders[3]),
+        Model("3D/HadesCarrier/HadesCarrier.obj", glm::vec3(25.0f, 3.0f, -20.0f), 0.75f, glm::vec3(30.0f, 0.0f, 0.0f), 
+            modelShaders[2],
+            MyTexture("3D/Odyssey/OdysseyHullTexture.png", false)
+        ),
+        Model("3D/Turtle/Turtle.obj", glm::vec3(15.0f, -2.0f, -9.5f), 0.5f, glm::vec3(45.0f, 135.0f, 45.0f), modelShaders[3]),
+        Model("3D/SharkV2/SharkV2.obj", glm::vec3(13.0f, -2.0f, 8.5f), 0.01f, glm::vec3(-45.0f, 135.0f, -45.0f), 
+            modelShaders[2], 
+            MyTexture("3D/SharkV2/SharkV2Texture.jpg", false)
+        ),
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    
-    //Temp - remove later
-    //projection
-    
-    glm::mat4 projection = glm::perspective(
-        glm::radians(60.0f),
-        screenHeight / screenWidth, //aspect ratio
-        0.1f, //0 < zNear < zFar
-        1000.0f
-    );
 
     // Position of Light
-    glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 5.0f);
+    glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
     // Light color
     glm::vec3 lightColor = glm::vec3(1, 1, 1);
 
@@ -129,35 +152,24 @@ int main(void)
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        tp_camera.recalculateFront();
+        tp_camera.recalculateViewMatrix();
 
-        if (pitch > 89.0f)
-            pitch = 89.0f;
-        if (pitch < -89.0f)
-            pitch = -89.0f;
-
-        glm::vec3 direction;
-        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        direction.y = sin(glm::radians(pitch));
-        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        // re-calculates the cameraFront based on the yaw and pitch
-        cameraFront = glm::normalize(direction);
-
-        /* View matrix*/
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
-        glm::mat4 transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, playerModel.getPosition());
-        transform = glm::scale(transform, playerModel.getScale());
-        transform = glm::rotate(transform, glm::radians(playerModel.getRotation().x), glm::vec3(0, 1, 0));
-        transform = glm::rotate(transform, glm::radians(playerModel.getRotation().y), glm::vec3(-1, 0, 0));
-        transform = glm::rotate(transform, glm::radians(playerModel.getRotation().z), glm::vec3(0, 0, 1));
+        if (view_select == 0) {
+            curr_view = tp_camera.getView();
+            curr_projection = tp_camera.getProjection();
+        }
+        if (view_select == 1) {
+            curr_view = ortho_cam.getView();
+            curr_projection = ortho_cam.getProjection();
+        }
 
         glm::mat4 sky_view = glm::mat4(1.f);
-        sky_view = glm::mat4(glm::mat3(view));
+        sky_view = glm::mat4(glm::mat3(curr_view));
 
         skyboxShader.useProgram();
         skyboxShader.setMat4("view", sky_view);
-        skyboxShader.setMat4("projection", projection);
+        skyboxShader.setMat4("projection", curr_projection);
 
         glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
@@ -169,26 +181,28 @@ int main(void)
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
 
-        modelShader.useProgram();
-        modelShader.setMat4("transform", transform);
-        modelShader.setMat4("projection", projection);
-        modelShader.setMat4("view", view);
-        modelShader.setVec3("lighPos", lightPos);
-        modelShader.setVec3("lightColor", lightColor);
-        modelShader.setFloat("ambientStr", ambientStr);
-        modelShader.setVec3("ambientColor", ambientColor);
-        modelShader.setVec3("cameraPos", cameraPos);
-        modelShader.setFloat("specStr", specStr);
-        modelShader.setFloat("specPhong", specPhong);
-        modelShader.setTexture("tex0", modelTexture.getTexId(), 0);
-        modelShader.setTexture("norm_tex", normTexture.getTexId(), 1);
-        modelShader.setTexture("tex1", lightsTexture.getTexId(), 2);
+        for (MyShader shader : modelShaders) {
+            shader.useProgram();
+            shader.setMat4("projection", curr_projection);
+            shader.setMat4("view", curr_view);
+            shader.setVec3("lighPos", lightPos);
+            shader.setVec3("lightColor", lightColor);
+            shader.setFloat("ambientStr", ambientStr);
+            shader.setVec3("ambientColor", ambientColor);
+            shader.setVec3("cameraPos", tp_camera.getCameraPos());
+            shader.setFloat("specStr", specStr);
+            shader.setFloat("specPhong", specPhong);
+        }
 
         // Draw VAO
         playerModel.draw();
 
         /* Loop each enemy model and render based on default position, scale, and rotation */
         for (Model enemyModel : enemyModels) {
+            enemyModel.draw();
+        }
+        /* Render 10 fixed mines around the world*/
+        /*for (int i = 0; i < 10; i++) {
             transform = glm::mat4(1.0f);
             transform = glm::translate(transform, enemyModel.getPosition());
             transform = glm::scale(transform, enemyModel.getScale());
@@ -200,7 +214,7 @@ int main(void)
             modelShader.setMat4("transform", transform);
 
             enemyModel.draw();
-        }
+        }*/
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -231,23 +245,37 @@ void Key_Callback(
 
     // movement of camera
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront; // moves forward
+        tp_camera.moveForward(cameraSpeed);
+
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront; // moves backward
+        tp_camera.moveBackward(cameraSpeed);
+        
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the left
+        tp_camera.moveLeft(cameraSpeed);
+        
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the right
+        tp_camera.moveRight(cameraSpeed);
 
     // rotation of camera
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        pitch += cameraSpeed; // rotates upwards
+        tp_camera.addPitch(cameraSpeed);
+        
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        pitch -= cameraSpeed; // rotates downwards
+        tp_camera.subPitch(cameraSpeed);
+
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        yaw -= cameraSpeed;   // rotates leftwards
+        tp_camera.subYaw(cameraSpeed);
+
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        yaw += cameraSpeed;   // rotates rightwards
+        tp_camera.addYaw(cameraSpeed);
+
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        view_select = 0;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {    
+        view_select = 1; 
+    }
 }
 
 /**
@@ -292,7 +320,8 @@ void Cursor_Callback(
         yoffset *= sensitivity;
 
         // modifies the yaw and pitch values based on the offset of mouse movement
-        yaw += xoffset;
-        pitch += yoffset;
+        tp_camera.addYaw(xoffset);
+        tp_camera.addPitch(yoffset);
+                    
     }
 }

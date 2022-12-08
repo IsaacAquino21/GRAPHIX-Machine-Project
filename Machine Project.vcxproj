@@ -167,13 +167,24 @@
     </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="MyShader.h" />
     <ClInclude Include="MyTexture.h" />
+    <ClInclude Include="Orthographic.h" />
+    <ClInclude Include="Perspective.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="SkyboxTexture.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="tiny_obj_loader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Shaders\color.frag" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\noTBN.vert" />
+    <None Include="Shaders\texture1.frag" />
+    <None Include="Shaders\texture2.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

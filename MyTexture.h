@@ -7,10 +7,11 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-class MyTexture
-{
-public:
+class MyTexture {
+private:
 	GLuint texId; //address
+
+public:
 
 	MyTexture(const char* texName, bool alpha) {
 		//Assigns the index for the texture
@@ -67,6 +68,11 @@ public:
 
 		//cleanup
 		stbi_image_free(tex_bytes);
+	}
+
+	MyTexture() {
+		/* Means that texture no value was set to the texture */
+		texId = -1;
 	}
 
 	//method used to get texture id
