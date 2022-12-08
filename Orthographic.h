@@ -6,7 +6,17 @@ class Orthographic :
 public:
     glm::mat4 projection;
 
-    Orthographic(float x, float y, float z, float screenHeight, float screenWidth, float zNear, float zFar) :Camera(x, y, z) {
+    /* Parameters:
+     * Position: location of camera
+     * up: World up for camera
+     * center: where the camera is looking at
+     * screenHeight: height of app (for projection)
+     * screenWidth: width of app (for projection)
+     * degrees: FoV (for projection)
+     * zNear: near distance (for projection)
+     * zFar: Far distance (for projection)
+     */
+    Orthographic(glm::vec3 position, glm::vec3 up, glm::vec3 front, float screenHeight, float screenWidth, float zNear, float zFar) :Camera(position, up, front) {
         projection = glm::ortho(
             -1.0f, //left
             screenWidth, //right

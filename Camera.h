@@ -10,18 +10,18 @@ public:
 	/* Position of camera in the world */
 	glm::vec3 cameraPos;
 	/* World up*/
-	glm::vec3 worldUp;
+	glm::vec3 cameraUp;
 	/* Center - where the camera is looking */
-	glm::vec3 cameraCenter;
+	glm::vec3 cameraFront;
 
 	/* View Matrix */
 	glm::mat4 view;
 
-	Camera(float x, float y, float z) {
-		cameraPos = glm::vec3(x, y, z);
-		worldUp = glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f));
-		cameraCenter = glm::vec3(0.0f, y, 0.0f);
-		view = glm::lookAt(cameraPos, cameraCenter, worldUp);
+	Camera(glm::vec3 position, glm::vec3 up, glm::vec3 front) {
+		cameraPos = position;
+		cameraUp = up;
+		cameraFront = front;
+		view = glm::lookAt(cameraPos, cameraFront, cameraUp);
 	}
 
 	/** Getters **/
@@ -29,12 +29,12 @@ public:
 		return cameraPos;
 	}
 
-	glm::vec3 getWorldUp() {
-		return worldUp;
+	glm::vec3 getCameraUp() {
+		return cameraUp;
 	}
 
-	glm::vec3 getCameraCenter() {
-		return cameraCenter;
+	glm::vec3 getCameraFront() {
+		return cameraFront;
 	}
 
 	glm::mat4 getView() {
