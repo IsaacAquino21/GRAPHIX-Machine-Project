@@ -13,19 +13,40 @@
 #include "Skybox.h"
 #include "SkyboxTexture.h"
 #include "Model.h"
+#include "Perspective.h"
+#include "Orthographic.h"
 
 /* Screen Resolution */
 float screenWidth = 900.0f;
 float screenHeight = 900.0f;
 
+float view_select = 0;
+
+
+glm::mat4 curr_view;
+glm::mat4 curr_projection;
+
+glm::vec3 curr_cameraPos;
+
+
+glm::mat4 projection = glm::perspective(
+    glm::radians(60.0f),
+    screenHeight / screenWidth, //aspect ratio
+    0.1f, //0 < zNear < zFar
+    1000.0f
+); 
+
+Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 15.0f, 0.0f),
+    glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), -10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
+
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Perspective tp_camera = Perspective(glm::vec3(-8.0f, 2.0f, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), screenHeight, screenWidth,
+    60.0f, 0.1f, 50.0f);
 
 double last_x, last_y;
 float yaw = -90.0f, pitch = -30.0f;
-bool button_down = false;
+bool button_down = false; // used for checking if mouse is clicked
 
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods);
 void Mouse_Callback(GLFWwindow* window, int button, int action, int mods);
@@ -90,16 +111,7 @@ int main(void)
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    
-    //Temp - remove later
-    //projection
-    
-    glm::mat4 projection = glm::perspective(
-        glm::radians(60.0f),
-        screenHeight / screenWidth, //aspect ratio
-        0.1f, //0 < zNear < zFar
-        1000.0f
-    );
+        
     float x, y, z;
     x = y = z = 0.0f;
 
@@ -122,26 +134,23 @@ int main(void)
     // Specular Phong
     float specPhong = 16;
 
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        tp_camera.recalculateFront();
+        tp_camera.recalculateViewMatrix();
 
-        if (pitch > 89.0f)
-            pitch = 89.0f;
-        if (pitch < -89.0f)
-            pitch = -89.0f;
-
-        glm::vec3 direction;
-        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        direction.y = sin(glm::radians(pitch));
-        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        // re-calculates the cameraFront based on the yaw and pitch
-        cameraFront = glm::normalize(direction);
-
-        /* View matrix*/
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        if (view_select == 0) {
+            curr_view = tp_camera.getView();
+            curr_projection = tp_camera.getProjection();
+        }
+        if (view_select == 1) {
+            curr_view = ortho_cam.getView();
+            curr_projection = ortho_cam.getProjection();
+        }
 
         glm::mat4 transform = glm::mat4(1.0f);
         transform = glm::translate(transform, glm::vec3(x, y, z));
@@ -149,11 +158,11 @@ int main(void)
         transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
 
         glm::mat4 sky_view = glm::mat4(1.f);
-        sky_view = glm::mat4(glm::mat3(view));
+        sky_view = glm::mat4(glm::mat3(curr_view));
 
         skyboxShader.useProgram();
         skyboxShader.setMat4("view", sky_view);
-        skyboxShader.setMat4("projection", projection);
+        skyboxShader.setMat4("projection", curr_projection);
 
         glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
@@ -167,13 +176,13 @@ int main(void)
 
         modelShader.useProgram();
         modelShader.setMat4("transform", transform);
-        modelShader.setMat4("projection", projection);
-        modelShader.setMat4("view", view);
+        modelShader.setMat4("projection", curr_projection);
+        modelShader.setMat4("view", curr_view);
         modelShader.setVec3("lighPos", lightPos);
         modelShader.setVec3("lightColor", lightColor);
         modelShader.setFloat("ambientStr", ambientStr);
         modelShader.setVec3("ambientColor", ambientColor);
-        modelShader.setVec3("cameraPos", cameraPos);
+        modelShader.setVec3("cameraPos", tp_camera.getCameraPos());
         modelShader.setFloat("specStr", specStr);
         modelShader.setFloat("specPhong", specPhong);
         modelShader.setTexture("tex0", modelTexture.getTexId(), 0);
@@ -245,23 +254,46 @@ void Key_Callback(
 
     // movement of camera
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront; // moves forward
+        tp_camera.moveForward(cameraSpeed);
+        
+        
+
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront; // moves backward
+        tp_camera.moveBackward(cameraSpeed);
+       
+        
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the left
+        tp_camera.moveLeft(cameraSpeed);
+       
+        
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the right
+        tp_camera.moveRight(cameraSpeed);
+        
+        
 
     // rotation of camera
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        pitch += cameraSpeed; // rotates upwards
+        tp_camera.addPitch(cameraSpeed);
+        
+        
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        pitch -= cameraSpeed; // rotates downwards
+        tp_camera.subPitch(cameraSpeed);
+       
+
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        yaw -= cameraSpeed;   // rotates leftwards
+        tp_camera.subYaw(cameraSpeed);
+        
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        yaw += cameraSpeed;   // rotates rightwards
+        tp_camera.addYaw(cameraSpeed);
+        
+
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        view_select = 0;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {    
+        view_select = 1; 
+    }
 }
 
 /**
@@ -306,7 +338,8 @@ void Cursor_Callback(
         yoffset *= sensitivity;
 
         // modifies the yaw and pitch values based on the offset of mouse movement
-        yaw += xoffset;
-        pitch += yoffset;
+        tp_camera.addYaw(xoffset);
+        tp_camera.addPitch(yoffset);
+                    
     }
 }
