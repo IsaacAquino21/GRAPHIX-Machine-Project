@@ -39,13 +39,9 @@ glm::mat4 projection = glm::perspective(
 Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 15.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), -10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
-Perspective tp_camera = Perspective(cameraPos,
-    cameraUp, cameraFront, screenHeight, screenWidth,
+Perspective tp_camera = Perspective(glm::vec3(0.0f, 0.0f, 10.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), screenHeight, screenWidth,
     60.0f, 0.1f, 1000.0f);
 
 double last_x, last_y;
@@ -186,7 +182,7 @@ int main(void)
         modelShader.setVec3("lightColor", lightColor);
         modelShader.setFloat("ambientStr", ambientStr);
         modelShader.setVec3("ambientColor", ambientColor);
-        modelShader.setVec3("cameraPos", cameraPos);
+        modelShader.setVec3("cameraPos", tp_camera.getCameraPos());
         modelShader.setFloat("specStr", specStr);
         modelShader.setFloat("specPhong", specPhong);
         modelShader.setTexture("tex0", modelTexture.getTexId(), 0);
