@@ -83,10 +83,10 @@ int main(void)
 
     SkyboxTexture skybox_uwTexture = SkyboxTexture(faceSkybox);
 
-    Model playerModel = Model("3D/Odyssey/Odyssey.obj", 0);
-    Model enemy1Model = Model("3D/Submarine.obj", 1);
-    Model enemy2Model = Model("3D/MossyRocks.obj", 2);
-    //Model enemy3Model = Model("3D/Mine.obj", 3);
+    Model playerModel = Model("3D/Odyssey/Odyssey.obj");
+    Model enemy1Model = Model("3D/SubmarineV1.obj");
+    Model enemy2Model = Model("3D/MossyRocks.obj");
+    //Model enemy3Model = Model("3D/Mine.obj");
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

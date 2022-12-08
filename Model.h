@@ -16,8 +16,7 @@ public:
      * Parameters:
      * const char* objFilename - Code from our vertex shader file
      */
-	Model(const char* objFilename, int i) {
-        index = i;
+	Model(const char* objFilename) {
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
         std::string warning, error;
@@ -144,8 +143,8 @@ public:
         }
 
         /* Generate and assign IDs to VAO, VBO and EBO*/
-        glGenVertexArrays(1 + i, &VAO);
-        glGenBuffers(1 + i, &VBO);
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
 
         /* Create an array of buffer to store the vertex positions */
         glBindVertexArray(VAO);
@@ -236,7 +235,7 @@ public:
 
     /* This method Deletes VAO, and VBO buffers */
     void deleteBuffers() {
-        glDeleteVertexArrays(1 + index, &VAO);
-        glDeleteBuffers(1 + index, &VBO);
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
     }
 };
