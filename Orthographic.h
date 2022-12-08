@@ -27,10 +27,6 @@ public:
             zNear, //zNear
             zFar //zFar
         );
-
-        printf("%f %f %f \n", left, right, bottom);
-        printf("%f %f %f \n", top, zNear, zFar);
-
     }
 
     glm::mat4 getProjection() {

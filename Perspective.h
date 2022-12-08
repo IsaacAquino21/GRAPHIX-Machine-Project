@@ -29,8 +29,8 @@ public:
             zNear,
             zFar
         );
-        yaw =  - 90.0f;
-        pitch = -30.0f;
+        yaw =  0.0f;
+        pitch = -20.0f;
     }
 
     void recalculateFront() {
