@@ -10,8 +10,8 @@ class Perspective :
 {
 public:
     glm::mat4 projection;
-    float yaw = -90.0f;
-    float pitch = -30.0f;
+    float yaw;
+    float pitch;
     /* Parameters:
      * Position: location of camera
      * up: World up for camera
@@ -29,11 +29,14 @@ public:
             zNear,
             zFar
         );
+        yaw =  - 90.0f;
+        pitch = -30.0f;
     }
 
     void recalculateFront() {
         if (pitch > 89.0f)
             pitch = 89.0f;
+
         if (pitch < -89.0f)
             pitch = -89.0f;
 
@@ -46,13 +49,10 @@ public:
     }
 
     void recalculateViewMatrix() {
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
     }
 
     void moveForward(float cameraSpeed) {
-        printf("Position: %f\n", cameraPos.x);
-        printf("Position: %f\n", cameraPos.y);
-        printf("Position: %f\n", cameraPos.z);
         cameraPos += cameraSpeed * cameraFront; // moves forward
     }
 
@@ -83,12 +83,10 @@ public:
 
     /** Setters **/
     void addPitch(float value) {
-        cout << "add pitch";
         pitch += value;
     }
 
     void addYaw(float value) {
-        cout << "add yaw";
         yaw += value;
     }
 
