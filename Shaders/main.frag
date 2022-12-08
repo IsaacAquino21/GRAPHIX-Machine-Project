@@ -35,44 +35,56 @@ in mat3 TBN;
 
 out vec4 FragColor;
 
+/** Function Prototype**/
+vec3 calcDirLight();
+
 void main(){
-	// Normalize the received normals
-	vec3 normal = normalize(normCoord);
-
-	// Get the difference of the light to the fragment
-	vec3 lightDir = normalize(lightPos - fragPos);
-
-	// Apply the diffuse formula 
-	float diff = max(dot(normal, lightDir), 0.0f);
-
-	// Multiply it to the desired light color
-	vec3 diffuse = diff * lightColor;
-
-	// Get the ambient light
-	vec3 ambientCol = ambientColor * ambientStr;
-
-	// Get our view direction from the camera to the fragment
-	vec3 viewDir = normalize(cameraPos - fragPos);
-
-	// Get the reflection vector
-	vec3 reflectDir = reflect(-lightDir, normal);
-
-	// Get the specular light
-	float spec = pow(max(dot(reflectDir, viewDir), 0.1), specPhong);
-
-	vec3 specColor = spec * specStr * lightColor;
-
-    //Getting the distance
-    float distance = length(lightPos - fragPos);
-
-    float attentuation = 1 / (1.0f + 0.045f * distance + 0.0075f * (distance * distance));
-
-    //formula for intensity: 1/distance^2
-    float intensity = 6.0f;
+	
+    vec3 dirLightContribution = calcDirLight();
 
 	vec4 texture0 = texture(tex0, texCoord);
 	vec4 texture1 = texture(tex1, texCoord);
     
     //apply intensity to specular, diffuse and ambient light
-    FragColor = vec4((specColor + diffuse + ambientCol) * attentuation * intensity, 1.0f) * mix(texture1, texture0, 0.6);
+    FragColor = vec4((dirLightContribution, 1.0f) * mix(texture1, texture0, 0.6));
+}
+
+/* This function calculates the light contribution of the Directional light to the object */
+vec3 calcDirLight(){
+    // Normalize the received normals
+	vec3 normal = normalize(normCoord);
+
+	// Get the difference of the light to the fragment
+	vec3 lightDir = normalize(lightPos - fragPos);
+
+    // Get our view direction from the camera to the fragment
+	vec3 viewDir = normalize(cameraPos - fragPos);
+    
+    float diff = max(
+        dot(normal, lightDir) , 0.0f
+    );
+
+    vec3 diffuse = (diff) * lightColor;
+
+    vec3 ambientCol = ambientStr * ambientColor;
+
+    vec3 reflectDir = reflect(-lightDir, normal);
+
+    float spec = pow(
+        max(
+            dot(reflectDir, viewDir), 0.1f    
+        ),
+    specPhong);
+
+    vec3 specCol = spec * specStr * lightColor;
+
+    float intensity = 6.0f;
+
+    //apply intensity
+    diffuse = diffuse * intensity;
+    ambientCol = ambientCol * intensity;
+    specCol = specCol * intensity;
+
+    //return combined value
+    return (diffuse + ambientCol + specCol);
 }
