@@ -58,6 +58,10 @@ public:
         return specPhong;
     }
 
+    float getIntensity() {
+        return intensity;
+    }
+
     void cycleIntensity() {
         if (intensity == 6.0f) {
             intensity = 8.0f;

@@ -49,17 +49,17 @@ Light pointLight = Light(
     glm::vec3(1, 1, 1),
     0.1f,
     glm::vec3(1, 1, 1),
-    0.05f,
-    16
+    3.0f,
+    25.0f
 );
 
 Light directionalLight = Light(
-    glm::vec3(0.0f, 10.0f, 5.0f),
+    glm::vec3(0.0f, 10.0f, 0.0f),
     glm::vec3(1, 1, 1),
     0.1f,
     glm::vec3(1, 1, 1),
-    0.05f,
-    16
+    3.0f,
+    25.0f
 );
 
 

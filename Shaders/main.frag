@@ -51,8 +51,10 @@ void main(){
 
 /* This function calculates the light contribution of the Directional light to the object */
 vec3 calcDirLight(){
-    // Normalize the received normals
-	vec3 normal = normalize(normCoord);
+    // Use normal map
+	vec3 normal = texture(norm_tex, texCoord).rgb;
+    normal = normalize(normal * 2.0 - 1.0);
+    normal = normalize(TBN * normal);
 
 	// Get the difference of the light to the fragment
 	vec3 lightDir = normalize(lightPos - fragPos);
@@ -77,13 +79,6 @@ vec3 calcDirLight(){
     specPhong);
 
     vec3 specCol = spec * specStr * lightColor;
-
-    float intensity = 6.0f;
-
-    //apply intensity
-    diffuse = diffuse * intensity;
-    ambientCol = ambientCol * intensity;
-    specCol = specCol * intensity;
 
     //return combined value
     return (diffuse + ambientCol + specCol);
