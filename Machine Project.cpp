@@ -280,18 +280,19 @@ void Key_Callback(
     int action,   // press or release
     int mods      // modifier keys
 ) {
+    const float cameraSpeed = 0.1f;
 
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
         view_select = 0;
     }
-    const float cameraSpeed = 0.1f;
-
+    
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+        pointLight.cycleIntensity();
+    }
     // movement of camera
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         tp_camera.moveForward(cameraSpeed);
         
-        
-
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         tp_camera.moveBackward(cameraSpeed);
        
