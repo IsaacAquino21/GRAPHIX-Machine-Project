@@ -60,7 +60,7 @@ void main(){
     vec3 finalColor = pointLightColor + dirLightColor;
     
     //apply intensity to specular, diffuse and ambient light
-    FragColor = vec4(finalColor, 1.0f) * vec4(0.0f, 0.7f, 0.0f, 0.0f);
+    FragColor = vec4(finalColor, 1.0f) * vec4(0.3f, 0.3f, 0.3f, 0.0f);
 }
 
 /* This function calculates the light contribution of the Point light to the object */

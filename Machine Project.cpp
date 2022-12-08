@@ -33,17 +33,17 @@ Light pointLight = Light(
     glm::vec3(1, 1, 1),
     0.1f,
     glm::vec3(1, 1, 1),
-    0.05f,
-    16
+    3.0f,
+    25.0f
 );
 
 Light directionalLight = Light(
-    glm::vec3(0.0f, 10.0f, 5.0f),
+    glm::vec3(0.0f, 10.0f, 0.0f),
     glm::vec3(1, 1, 1),
     0.1f,
     glm::vec3(1, 1, 1),
-    0.05f,
-    16
+    3.0f,
+    25.0f
 );
 
 /* Camera Instances */
@@ -133,22 +133,28 @@ int main(void)
 
     /* Player Model */
     Model playerModel = Model("3D/Odyssey/Odyssey.obj", glm::vec3(0.0f, 0.0f, 0.0f), 0.005f, glm::vec3(90.0f, 0.0f, 0.0f),
-        modelShaders[1],
+        modelShaders[0],
         MyTexture("3D/Odyssey/OdysseyHullTexture.png", false),
-        MyTexture("3D/Odyssey/OdysseyHullEmissive.png", false)
+        MyTexture("3D/Odyssey/OdysseyHullEmissive.png", false),
+        MyTexture("3D/Odyssey/OdysseyHullNormal.png", false)
     );
 
     /* Enemy Models */
     Model enemyModels[6] = {
-         Model("3D/SubmarineV1.obj", glm::vec3(30.5f, -2.5f, 18.5f), 0.01f, glm::vec3(45.0f, 0.0f, 0.0f), modelShaders[3]),
-        Model("3D/SubmarineV2/SubmarineV2.obj", glm::vec3(15.5f, 3.5f, 18.5f), 1.0f, glm::vec3(-30.0f, 0.0f, 0.0f), modelShaders[3]),
-        Model("3D/SubmarineV3/SubmarineV3.obj", glm::vec3(40.0f, 2.5f, -20.5f), 0.001f, glm::vec3(45.0f, 90.0f, 0.0f), modelShaders[3]),
-        Model("3D/HadesCarrier/HadesCarrier.obj", glm::vec3(25.0f, 3.0f, -20.0f), 0.75f, glm::vec3(30.0f, 0.0f, 0.0f), 
+        Model("3D/SubmarineV1.obj", glm::vec3(30.5f, -2.5f, 18.5f), 0.01f, glm::vec3(45.0f, 0.0f, 0.0f), modelShaders[3]),
+        Model("3D/SubmarineV2/SubmarineV2.obj", glm::vec3(15.5f, 3.5f, 18.5f), 1.0f, glm::vec3(-30.0f, 0.0f, 0.0f), 
             modelShaders[2],
-            MyTexture("3D/Odyssey/OdysseyHullTexture.png", false)
+            MyTexture("3D/SubmarineV2/SubmarineV2Base.png", false)
         ),
-        Model("3D/Turtle/Turtle.obj", glm::vec3(15.0f, -2.0f, -9.5f), 0.5f, glm::vec3(45.0f, 135.0f, 45.0f), modelShaders[3]),
-        Model("3D/SharkV2/SharkV2.obj", glm::vec3(13.0f, -2.0f, 8.5f), 0.01f, glm::vec3(-45.0f, 135.0f, -45.0f), 
+        Model("3D/SubmarineV3/SubmarineV3.obj", glm::vec3(40.0f, 2.5f, -20.5f), 0.001f, glm::vec3(45.0f, 90.0f, 0.0f), modelShaders[0]),
+        Model("3D/Dolphin/Dolphin.obj", glm::vec3(25.0f, 3.0f, -10.0f), 0.025f, glm::vec3(30.0f, 90.0f, 0.0f), 
+            modelShaders[2],
+            MyTexture("3D/Dolphin/Dolphin.jpg", false)
+        ),
+        Model("3D/SeaTurtle/SeaTurtle.obj", glm::vec3(15.0f, -2.0f, -9.5f), 0.025f, glm::vec3(45.0f, 45.0f, -120.0f),
+            modelShaders[2],
+            MyTexture("3D/SeaTurtle/SeaTurtle.jpg", false)),
+        Model("3D/SharkV2/SharkV2.obj", glm::vec3(13.0f, -2.0f, 8.5f), 0.025f, glm::vec3(-45.0f, 90.0f, 30.0f), 
             modelShaders[2], 
             MyTexture("3D/SharkV2/SharkV2Texture.jpg", false)
         ),

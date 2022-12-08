@@ -38,7 +38,7 @@ public:
         scale = glm::vec3(s);
         rotation = rot;
 
-        fullVertexLength = 14;
+        fullVertexLength = 11;
 
         loadObj(objFilename);
 	}
@@ -125,9 +125,8 @@ public:
         for (int n = 0; n < shapes.size(); n++) {
             /* Get the tangents and bitangents */
             std::vector<glm::vec3> tangents;
-            std::vector<glm::vec3> bitangents;
 
-            if (fullVertexLength == 14) {
+            if (fullVertexLength == 11) {
                 for (int i = 0; i < shapes[n].mesh.indices.size(); i += 3) {
                     tinyobj::index_t vData1 = shapes[n].mesh.indices[i];
                     tinyobj::index_t vData2 = shapes[n].mesh.indices[i + 1];
@@ -176,15 +175,10 @@ public:
 
                     float r = 1.0f / ((deltaUV1.x * deltaUV2.y) - (deltaUV1.y * deltaUV2.x));
                     glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
-                    glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.y) * r;
 
                     tangents.push_back(tangent);
                     tangents.push_back(tangent);
                     tangents.push_back(tangent);
-
-                    bitangents.push_back(bitangent);
-                    bitangents.push_back(bitangent);
-                    bitangents.push_back(bitangent);
                 }
 
             }
@@ -223,16 +217,11 @@ public:
                 // Push the V of the Tex Coords
                 fullVertexData.push_back(attributes.texcoords[texCoordsIndex + 1]);
 
-                if (fullVertexLength == 14) {
+                if (fullVertexLength == 11) {
                     // Push the Tangents
                     fullVertexData.push_back(tangents[i].x);
                     fullVertexData.push_back(tangents[i].y);
                     fullVertexData.push_back(tangents[i].z);
-
-                    // Push the Bitangents
-                    fullVertexData.push_back(bitangents[i].x);
-                    fullVertexData.push_back(bitangents[i].y);
-                    fullVertexData.push_back(bitangents[i].z);
                 }
             }
         }
@@ -290,7 +279,7 @@ public:
             (void*)uvPtr
         );
 
-        if (fullVertexLength == 14) {
+        if (fullVertexLength == 11) {
             GLintptr tangentPtr = 8 * sizeof(GL_FLOAT);
 
             glVertexAttribPointer(
@@ -302,26 +291,14 @@ public:
                 (void*)tangentPtr
             );
 
-            GLintptr bitangentPtr = 11 * sizeof(GL_FLOAT);
-
-            glVertexAttribPointer(
-                4, // location
-                3, // bitangent(X, Y, Z)
-                GL_FLOAT,
-                GL_FALSE,
-                fullVertexLength * sizeof(GL_FLOAT),
-                (void*)bitangentPtr
-            );
-
         }
 
         /* Tell the VAO to use the data above */
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
-        if (fullVertexLength == 14) {
+        if (fullVertexLength == 11) {
             glEnableVertexAttribArray(3);
-            glEnableVertexAttribArray(4);
         }
     }
     

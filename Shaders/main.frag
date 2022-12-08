@@ -58,7 +58,9 @@ vec3 calcDirLight(vec3 lightPos, vec3 lightColor, float ambientStr, vec3 ambient
 
 void main(){
 	// Normalize the received normals
-	vec3 normal = normalize(normCoord);
+	vec3 normal = texture(norm_tex, texCoord).rgb;
+    normal = normalize(normal * 2.0 - 1.0);
+    normal = normalize(TBN * normal);
     
 	// Get our view direction from the camera to the fragment
     vec3 viewDir = normalize(cameraPos - fragPos);
@@ -88,26 +90,8 @@ vec3 calcPointLight(vec3 lightPos, vec3 lightColor, float ambientStr, vec3 ambie
 
     vec3 ambientCol = ambientStr * ambientColor;
 
-    vec3 reflectDir = reflect(-lightDir, normal);
-
-    float spec = pow(
-        max(
-            dot(reflectDir, viewDir), 0.1f    
-        ),
-    specPhong);
-
-    vec3 specCol = spec * specStr * lightColor;
-
-    //Getting the distance
-    float distance = length(lightPos - fragPos);
-
-    /* Formula for attentuation: 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance))
-     * Used values are for light that can cover a distance of 100 units
-     */
-    float attentuation = 1 / (1.0f + 0.045f * distance + 0.0075f * (distance * distance));
-
     //return combined value with applied attentuation and intensity to specular, diffuse and ambient light
-    return (diffuse + ambientCol + specCol) * attentuation * intensity;
+    return (diffuse + ambientCol) * intensity;
 }
 
 /* This function calculates the light contribution of the Directional light to the object */
