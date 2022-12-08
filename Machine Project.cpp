@@ -15,6 +15,7 @@
 #include "Model.h"
 #include "Perspective.h"
 #include "Orthographic.h"
+#include "Light.h"
 
 /* Screen Resolution */
 float screenWidth = 900.0f;
@@ -22,7 +23,7 @@ float screenHeight = 900.0f;
 
 float view_select = 0;
 
-
+/* Global Variables used for switching view and projection */
 glm::mat4 curr_view;
 glm::mat4 curr_projection;
 
