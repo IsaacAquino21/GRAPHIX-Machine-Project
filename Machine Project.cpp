@@ -42,11 +42,7 @@ Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 15.0f, 0.0f),
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
 Perspective tp_camera = Perspective(glm::vec3(-8.0f, 2.0f, 0.0f),
     glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), screenHeight, screenWidth,
-<<<<<<< OrthoCamera
-    60.0f, 0.1f, 30.0f);
-=======
     60.0f, 0.1f, 50.0f);
->>>>>>> main
 
 double last_x, last_y;
 float yaw = -90.0f, pitch = -30.0f;

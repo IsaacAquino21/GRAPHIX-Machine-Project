@@ -30,11 +30,7 @@ public:
             zFar
         );
         yaw =  0.0f;
-<<<<<<< OrthoCamera
-        pitch = -30.0f;
-=======
         pitch = -20.0f;
->>>>>>> main
     }
 
     void recalculateFront() {
