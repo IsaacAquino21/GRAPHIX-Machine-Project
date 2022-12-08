@@ -48,8 +48,9 @@ public:
         cameraFront = glm::normalize(direction);
     }
 
-    void recalculateViewMatrix() {
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    glm::mat4 recalculateViewMatrix() {
+        glm::mat4 newView = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        return newView;
     }
 
     void moveForward(float cameraSpeed) {

@@ -24,12 +24,13 @@ float screenHeight = 900.0f;
 Perspective tp_camera = Perspective(glm::vec3(0.0f, 0.0f, 10.0f),
     glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), screenHeight, screenWidth,
     60.0f,0.1f, 1000.0f);
-//glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
-//glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
-//glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 double last_x, last_y;
-//float yaw = -90.0f, pitch = -30.0f;
+float yaw = -90.0f, pitch = -30.0f;
 bool button_down = false; // used for checking if mouse is clicked
 
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods);
@@ -132,7 +133,7 @@ int main(void)
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        /*
+        
         if (pitch > 89.0f)
             pitch = 89.0f;
         if (pitch < -89.0f)
@@ -144,12 +145,16 @@ int main(void)
         direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
         // re-calculates the cameraFront based on the yaw and pitch
         cameraFront = glm::normalize(direction);
-        */
+        
         /* View matrix*/
-        //glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
+        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        
         tp_camera.recalculateFront();
         tp_camera.recalculateViewMatrix();
+        glm::mat4 view2 = glm::lookAt(tp_camera.getCameraPos(), 
+            tp_camera.getCameraPos() + tp_camera.getCameraFront(),
+            tp_camera.getCameraUp()
+        );
 
         glm::mat4 transform = glm::mat4(1.0f);
         transform = glm::translate(transform, glm::vec3(x, y, z));
@@ -157,11 +162,13 @@ int main(void)
         transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
 
         glm::mat4 sky_view = glm::mat4(1.f);
+        sky_view = glm::mat4(glm::mat3(view));
         sky_view = glm::mat4(glm::mat3(tp_camera.getView()));
 
         skyboxShader.useProgram();
         skyboxShader.setMat4("view", sky_view);
-        skyboxShader.setMat4("projection", tp_camera.getProjection());
+        //skyboxShader.setMat4("projection", tp_camera.getProjection());
+        skyboxShader.setMat4("projection", projection);
 
         glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
@@ -175,13 +182,16 @@ int main(void)
 
         modelShader.useProgram();
         modelShader.setMat4("transform", transform);
-        modelShader.setMat4("projection", tp_camera.getProjection());
-        modelShader.setMat4("view", tp_camera.getView());
+        modelShader.setMat4("projection", projection);
+        //modelShader.setMat4("projection", tp_camera.getProjection());
+        //modelShader.setMat4("view", tp_camera.getView());
+        modelShader.setMat4("view", view);
         modelShader.setVec3("lighPos", lightPos);
         modelShader.setVec3("lightColor", lightColor);
         modelShader.setFloat("ambientStr", ambientStr);
         modelShader.setVec3("ambientColor", ambientColor);
-        modelShader.setVec3("cameraPos", tp_camera.getCameraPos());
+        //modelShader.setVec3("cameraPos", tp_camera.getCameraPos());
+        modelShader.setVec3("cameraPos", cameraPos);
         modelShader.setFloat("specStr", specStr);
         modelShader.setFloat("specPhong", specPhong);
         modelShader.setTexture("tex0", modelTexture.getTexId(), 0);
@@ -253,38 +263,38 @@ void Key_Callback(
 
     // movement of camera
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        tp_camera.moveForward(cameraSpeed);
-        //cameraPos += cameraSpeed * cameraFront; // moves forward
+        //tp_camera.moveForward(cameraSpeed);
+        cameraPos += cameraSpeed * cameraFront; // moves forward
         
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        tp_camera.moveBackward(cameraSpeed);
-        //cameraPos -= cameraSpeed * cameraFront; // moves backward
+        //tp_camera.moveBackward(cameraSpeed);
+        cameraPos -= cameraSpeed * cameraFront; // moves backward
         
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        tp_camera.moveLeft(cameraSpeed);
-        //cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the left
+        //tp_camera.moveLeft(cameraSpeed);
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the left
         
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        tp_camera.moveRight(cameraSpeed);
-        //cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the right
+        //tp_camera.moveRight(cameraSpeed);
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the right
         
 
     // rotation of camera
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        tp_camera.addPitch(cameraSpeed);
-        //pitch += cameraSpeed; // rotates upwards
+        //tp_camera.addPitch(cameraSpeed);
+        pitch += cameraSpeed; // rotates upwards
         
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        tp_camera.subPitch(cameraSpeed);
-       //pitch -= cameraSpeed; // rotates downwards
+        //tp_camera.subPitch(cameraSpeed);
+       pitch -= cameraSpeed; // rotates downwards
 
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        tp_camera.subYaw(cameraSpeed);
-        //yaw -= cameraSpeed;   // rotates leftwards
+        //tp_camera.subYaw(cameraSpeed);
+        yaw -= cameraSpeed;   // rotates leftwards
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        tp_camera.addYaw(cameraSpeed);
-        //yaw += cameraSpeed;   // rotates rightwards
+        //tp_camera.addYaw(cameraSpeed);
+        yaw += cameraSpeed;   // rotates rightwards
 }
 
 /**
@@ -329,12 +339,12 @@ void Cursor_Callback(
         yoffset *= sensitivity;
 
         // modifies the yaw and pitch values based on the offset of mouse movement
-        tp_camera.addYaw(xoffset);
-        tp_camera.addPitch(yoffset);
-        /*
+        //tp_camera.addYaw(xoffset);
+        //tp_camera.addPitch(yoffset);
+        
         yaw += xoffset;
         pitch += yoffset;
-        */
+        
         
     }
 }
