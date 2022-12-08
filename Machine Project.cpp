@@ -21,34 +21,67 @@
 float screenWidth = 900.0f;
 float screenHeight = 900.0f;
 
-float view_select = 0;
+
 
 /* Global Variables used for switching view and projection */
+float view_select = 0;
 glm::mat4 curr_view;
 glm::mat4 curr_projection;
-
 glm::vec3 curr_cameraPos;
 
+// Position of Light
+glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 5.0f);
+// Light color
+glm::vec3 lightColor = glm::vec3(1, 1, 1);
 
-glm::mat4 projection = glm::perspective(
-    glm::radians(60.0f),
-    screenHeight / screenWidth, //aspect ratio
-    0.1f, //0 < zNear < zFar
-    1000.0f
-); 
+// Ambient Strength
+float ambientStr = 0.1f;
 
-Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 15.0f, 0.0f),
-    glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), -10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
+// Ambient Color
+glm::vec3 ambientColor = lightColor;
 
+// Specular Strength
+float specStr = 0.05f;
+
+// Specular Phong
+float specPhong = 16;
+/* Light Instances */
+Light pointLight = Light(glm::vec3(0.0f, 10.0f, 5.0f),
+    glm::vec3(1, 1, 1),
+    0.1f,
+    glm::vec3(1, 1, 1),
+    0.05f,
+    16
+    );
+
+
+/* Camera Instances */
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
+Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 15.0f, 0.0f),
+    glm::vec3(0.0f, 0.0f, -1.0f), 
+    glm::vec3(0.0f, 0.0f, 0.0f), 
+    -10.0f, 
+    10.0f, 
+    -10.0f, 
+    10.0f, 
+    0.0f, 
+    100.0f
+);
+
 Perspective tp_camera = Perspective(glm::vec3(-8.0f, 2.0f, 0.0f),
-    glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), screenHeight, screenWidth,
-    60.0f, 0.1f, 50.0f);
+    glm::vec3(0.0f, 1.0f, 0.0f), 
+    glm::vec3(0.0f, 0.0f, 1.0f), 
+    screenHeight, 
+    screenWidth,
+    60.0f, 
+    0.1f, 
+    50.0f
+);
 
 double last_x, last_y;
-float yaw = -90.0f, pitch = -30.0f;
 bool button_down = false; // used for checking if mouse is clicked
 
+/* Function Prototypes */
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods);
 void Mouse_Callback(GLFWwindow* window, int button, int action, int mods);
 void Cursor_Callback(GLFWwindow* window, double xpos, double ypos);
@@ -118,22 +151,7 @@ int main(void)
 
     float scale = 0.005f;
 
-    // Position of Light
-    glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 5.0f);
-    // Light color
-    glm::vec3 lightColor = glm::vec3(1, 1, 1);
 
-    // Ambient Strength
-    float ambientStr = 0.1f;
-
-    // Ambient Color
-    glm::vec3 ambientColor = lightColor;
-
-    // Specular Strength
-    float specStr = 0.05f;
-
-    // Specular Phong
-    float specPhong = 16;
 
 
     /* Loop until the user closes the window */
