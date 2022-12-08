@@ -20,16 +20,34 @@
 float screenWidth = 900.0f;
 float screenHeight = 900.0f;
 
+float view_select = 0;
+
+
+glm::mat4 curr_view;
+glm::mat4 curr_projection;
+
+
+glm::mat4 projection = glm::perspective(
+    glm::radians(60.0f),
+    screenHeight / screenWidth, //aspect ratio
+    0.1f, //0 < zNear < zFar
+    1000.0f
+); 
+
+Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 15.0f, 0.0f),
+    glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), -10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
+
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
-Perspective tp_camera = Perspective(glm::vec3(0.0f, 0.0f, 10.0f),
-    glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), screenHeight, screenWidth,
+Perspective tp_camera = Perspective(glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), screenHeight, screenWidth,
     60.0f,0.1f, 1000.0f);
-//glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
-//glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
-//glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 double last_x, last_y;
-//float yaw = -90.0f, pitch = -30.0f;
+float yaw = -90.0f, pitch = -30.0f;
 bool button_down = false; // used for checking if mouse is clicked
 
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods);
@@ -99,12 +117,7 @@ int main(void)
     //Temp - remove later
     //projection
     
-    glm::mat4 projection = glm::perspective(
-        glm::radians(60.0f),
-        screenHeight / screenWidth, //aspect ratio
-        0.1f, //0 < zNear < zFar
-        1000.0f
-    );
+    
     float x, y, z;
     x = y = z = 0.0f;
 
@@ -127,12 +140,13 @@ int main(void)
     // Specular Phong
     float specPhong = 16;
 
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        /*
+        
         if (pitch > 89.0f)
             pitch = 89.0f;
         if (pitch < -89.0f)
@@ -144,12 +158,21 @@ int main(void)
         direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
         // re-calculates the cameraFront based on the yaw and pitch
         cameraFront = glm::normalize(direction);
-        */
+        
         /* View matrix*/
-        //glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
-        tp_camera.recalculateFront();
-        tp_camera.recalculateViewMatrix();
+        if (view_select == 0) {
+            curr_view = view;
+            curr_projection = projection;
+        }
+        if (view_select == 1) {
+            curr_view = ortho_cam.getView();
+            curr_projection = ortho_cam.getProjection();
+        }
+
+        /*tp_camera.recalculateFront();
+        tp_camera.recalculateViewMatrix();*/
 
         glm::mat4 transform = glm::mat4(1.0f);
         transform = glm::translate(transform, glm::vec3(x, y, z));
@@ -157,11 +180,11 @@ int main(void)
         transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
 
         glm::mat4 sky_view = glm::mat4(1.f);
-        sky_view = glm::mat4(glm::mat3(tp_camera.getView()));
+        sky_view = glm::mat4(glm::mat3(curr_view));
 
         skyboxShader.useProgram();
         skyboxShader.setMat4("view", sky_view);
-        skyboxShader.setMat4("projection", tp_camera.getProjection());
+        skyboxShader.setMat4("projection", curr_projection);
 
         glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
@@ -175,13 +198,13 @@ int main(void)
 
         modelShader.useProgram();
         modelShader.setMat4("transform", transform);
-        modelShader.setMat4("projection", tp_camera.getProjection());
-        modelShader.setMat4("view", tp_camera.getView());
+        modelShader.setMat4("projection", curr_projection);
+        modelShader.setMat4("view", curr_view);
         modelShader.setVec3("lighPos", lightPos);
         modelShader.setVec3("lightColor", lightColor);
         modelShader.setFloat("ambientStr", ambientStr);
         modelShader.setVec3("ambientColor", ambientColor);
-        modelShader.setVec3("cameraPos", tp_camera.getCameraPos());
+        modelShader.setVec3("cameraPos", cameraPos);
         modelShader.setFloat("specStr", specStr);
         modelShader.setFloat("specPhong", specPhong);
         modelShader.setTexture("tex0", modelTexture.getTexId(), 0);
@@ -285,6 +308,14 @@ void Key_Callback(
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         tp_camera.addYaw(cameraSpeed);
         //yaw += cameraSpeed;   // rotates rightwards
+
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        view_select = 0;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {    
+        view_select = 1; 
+    }
 }
 
 /**

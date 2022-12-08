@@ -46,7 +46,7 @@ public:
     }
 
     void recalculateViewMatrix() {
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
     }
 
     void moveForward(float cameraSpeed) {
