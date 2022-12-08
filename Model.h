@@ -10,13 +10,23 @@ public:
     /* Store vertices */
     std::vector<GLfloat> fullVertexData;
 
+    /* Stores transformations of the model */
+    glm::vec3 position, scale, rotation;
+
     /* Constructor of the Model3D Class
      * > Initializes shader of program then loads the object along with VAO and VBO
      *
      * Parameters:
      * const char* objFilename - Code from our vertex shader file
+     * glm::vec3 pos - Default position of Model in X, Y, and Z
+     * float s - Default scale in size of Model (same value in X, Y, and Z)
+     * glm::vec3 rot - Default rotation of Model in X, Y, and Z axis
      */
-	Model(const char* objFilename) {
+	Model(const char* objFilename, glm::vec3 pos, float s, glm::vec3 rot) {
+        position = pos;
+        scale = glm::vec3(s);
+        rotation = rot;
+
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
         std::string warning, error;
@@ -231,6 +241,26 @@ public:
 
         // draws the obj with regards to the operations applied
         glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 14);
+    }
+
+    glm::vec3 getPosition() {
+        return position;
+    }
+
+    glm::vec3 getScale() {
+        return scale;
+    }
+    
+    glm::vec3 getRotation() {
+        return rotation;
+    }
+
+    void setPosition(glm::vec3 pos) {
+        position = pos;
+    }
+
+    void setRotation(glm::vec3 rot) {
+        rotation = rot;
     }
 
     /* This method Deletes VAO, and VBO buffers */

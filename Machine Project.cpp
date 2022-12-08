@@ -83,10 +83,16 @@ int main(void)
 
     SkyboxTexture skybox_uwTexture = SkyboxTexture(faceSkybox);
 
-    Model playerModel = Model("3D/Odyssey/Odyssey.obj");
-    Model enemy1Model = Model("3D/SubmarineV1.obj");
-    Model enemy2Model = Model("3D/MossyRocks.obj");
-    //Model enemy3Model = Model("3D/Mine.obj");
+    Model playerModel = Model("3D/Odyssey/Odyssey.obj", glm::vec3(0.0f, 0.0f, 0.0f), 0.005f, glm::vec3(90.0f, 0.0f, 0.0f));
+
+    Model enemyModels[6] = {
+        Model("3D/SubmarineV1.obj", glm::vec3(7.5f, -2.5f, 7.5f), 0.0025f, glm::vec3(90.0f, 0.0f, 0.0f)),
+        Model("3D/SubmarineV2/SubmarineV2.obj", glm::vec3(-7.5f, 5.5f, -7.5f), 0.1f, glm::vec3(45.0f, 0.0f, 0.0f)),
+        Model("3D/SubmarineV3/SubmarineV3.obj", glm::vec3(20.0f, 10.0f, 20.0f), 0.001f, glm::vec3(45.0f, 90.0f, 0.0f)),
+        Model("3D/Turtle/Turtle.obj", glm::vec3(-10.0f, 20.0f, -7.5f), 0.01f, glm::vec3(90.0f, 0.0f, 0.0f)),
+        Model("3D/MossyRocks.obj", glm::vec3(20.0f, -15.0f, -7.5f), 0.01f, glm::vec3(90.0f, 0.0f, 0.0f)),
+        Model("3D/Mine.obj", glm::vec3(10.0f, -20.0f, -5.0f), 0.1f, glm::vec3(90.0f, 0.0f, 0.0f)),
+    };
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -100,10 +106,6 @@ int main(void)
         0.1f, //0 < zNear < zFar
         1000.0f
     );
-    float x, y, z;
-    x = y = z = 0.0f;
-
-    float scale = 0.005f;
 
     // Position of Light
     glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 5.0f);
@@ -144,9 +146,11 @@ int main(void)
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         glm::mat4 transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, glm::vec3(x, y, z));
-        transform = glm::scale(transform, glm::vec3(scale));
-        transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
+        transform = glm::translate(transform, playerModel.getPosition());
+        transform = glm::scale(transform, playerModel.getScale());
+        transform = glm::rotate(transform, glm::radians(playerModel.getRotation().x), glm::vec3(0, 1, 0));
+        transform = glm::rotate(transform, glm::radians(playerModel.getRotation().y), glm::vec3(-1, 0, 0));
+        transform = glm::rotate(transform, glm::radians(playerModel.getRotation().z), glm::vec3(0, 0, 1));
 
         glm::mat4 sky_view = glm::mat4(1.f);
         sky_view = glm::mat4(glm::mat3(view));
@@ -183,40 +187,20 @@ int main(void)
         // Draw VAO
         playerModel.draw();
 
-        /* Submarine */
-        transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, glm::vec3(7.5f, -2.5f, 7.5f));
-        transform = glm::scale(transform, glm::vec3(0.0025f));
-        transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
-
-        modelShader.useProgram();
-        modelShader.setMat4("transform", transform);
-
-        enemy1Model.draw();
-
-        for (int i = -5; i < 5; i++) {
-            /* Enemy 2 - Stones */
+        /* Loop each enemy model and render based on default position, scale, and rotation */
+        for (Model enemyModel : enemyModels) {
             transform = glm::mat4(1.0f);
-            transform = glm::translate(transform, glm::vec3(10.0f * i, -20.0f, -5.0f * i));
-            transform = glm::scale(transform, glm::vec3(1.0f));
-            transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
+            transform = glm::translate(transform, enemyModel.getPosition());
+            transform = glm::scale(transform, enemyModel.getScale());
+            transform = glm::rotate(transform, glm::radians(enemyModel.getRotation().x), glm::vec3(0, 1, 0));
+            transform = glm::rotate(transform, glm::radians(enemyModel.getRotation().y), glm::vec3(-1, 0, 0));
+            transform = glm::rotate(transform, glm::radians(enemyModel.getRotation().z), glm::vec3(0, 0, 1));
 
             modelShader.useProgram();
             modelShader.setMat4("transform", transform);
 
-            enemy2Model.draw();
+            enemyModel.draw();
         }
-
-        /* Enemy 3 - AkulaClassAtackSubmarine */
-        /*transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, glm::vec3(-7.5f, 5.5f, -7.5f));
-        transform = glm::scale(transform, glm::vec3(0.01f));
-        transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
-
-        modelShader.useProgram();
-        modelShader.setMat4("transform", transform);
-
-        enemy3Model.draw();*/
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -226,8 +210,7 @@ int main(void)
     }
 
     playerModel.deleteBuffers();
-    enemy1Model.deleteBuffers();
-    enemy2Model.deleteBuffers();
+    for (Model model : enemyModels) model.deleteBuffers();
     skybox.deleteBuffers();
 
     glfwTerminate();
