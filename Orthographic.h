@@ -37,5 +37,8 @@ public:
         return view;
     }
 
+    void orthorecalViewMatrix() {
+        view = glm::lookAt(cameraPos, cameraFront, cameraUp);
+    }
 
 };
