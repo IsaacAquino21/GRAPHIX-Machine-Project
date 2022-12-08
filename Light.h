@@ -21,6 +21,8 @@ public:
     // Specular Phong
     float specPhong;
 
+    float intensity;
+
     /* Constructors */
     Light(glm::vec3 position, glm::vec3 color, float amb_str, glm::vec3 amb_clr, float spc_str, float spc_phn) {
         lightPos = position;
@@ -29,6 +31,7 @@ public:
         ambientColor = amb_clr;
         specStr = spc_str;
         specPhong = spc_phn;
+        intensity = 6.0f;
     }
     /* Getters */
     glm::vec3 getLightPos() {
@@ -53,6 +56,23 @@ public:
 
     float getSpecularPhong() {
         return specPhong;
+    }
+
+    void cycleIntensity() {
+        if (intensity == 6.0f) {
+            intensity = 8.0f;
+            printf("Intensity set to: Medium\n");
+        }
+            
+        else if (intensity == 8.0f) {
+            intensity = 10.0f;
+            printf("Intensity set to: High\n");
+        }
+            
+        else if (intensity == 10.0f) {
+            intensity = 6.0f;
+            printf("Intensity set to: Low\n");
+        }       
     }
 
 

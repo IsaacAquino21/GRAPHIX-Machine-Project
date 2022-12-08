@@ -35,6 +35,9 @@ in mat3 TBN;
 
 out vec4 FragColor;
 
+/** Function Prototype**/
+vec3 calcDirLight();
+
 void main(){
 	// Normalize the received normals
 	vec3 normal = normalize(normCoord);
@@ -75,4 +78,41 @@ void main(){
     
     //apply intensity to specular, diffuse and ambient light
     FragColor = vec4((specColor + diffuse + ambientCol) * attentuation * intensity, 1.0f) * mix(texture1, texture0, 0.6);
+}
+
+/* This function calculates the light contribution of the Directional light to the object */
+vec3 calcDirLight(){
+    // Normalize the received normals
+	vec3 normal = normalize(normCoord);
+
+	// Get the difference of the light to the fragment
+	vec3 lightDir = normalize(lightPos - fragPos);
+    
+    float diff = max(
+        dot(normal, lightDir) , 0.0f
+    );
+
+    vec3 diffuse = (diff) * lightColor;
+
+    vec3 ambientCol = ambientStr * ambientColor;
+
+    vec3 reflectDir = reflect(-lightDir, normal);
+
+    float spec = pow(
+        max(
+            dot(reflectDir, viewDir), 0.1f    
+        ),
+    specPhong);
+
+    vec3 specCol = spec * specStr * lightColor;
+
+    float intensity = 6.0f;
+
+    //apply intensity
+    diffuse = diffuse * intensity;
+    ambientCol = ambientCol * intensity;
+    specCol = specCol * intensity;
+
+    //return combined value
+    return (diffuse + ambientCol + specCol);
 }

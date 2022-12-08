@@ -21,8 +21,6 @@
 float screenWidth = 900.0f;
 float screenHeight = 900.0f;
 
-
-
 /* Global Variables used for switching view and projection */
 float view_select = 0;
 glm::mat4 curr_view;
@@ -46,18 +44,29 @@ float specStr = 0.05f;
 // Specular Phong
 float specPhong = 16;
 /* Light Instances */
-Light pointLight = Light(glm::vec3(0.0f, 10.0f, 5.0f),
+Light pointLight = Light(
+    glm::vec3(0.0f, 10.0f, 5.0f),
     glm::vec3(1, 1, 1),
     0.1f,
     glm::vec3(1, 1, 1),
     0.05f,
     16
-    );
+);
+
+Light directionalLight = Light(
+    glm::vec3(0.0f, 10.0f, 5.0f),
+    glm::vec3(1, 1, 1),
+    0.1f,
+    glm::vec3(1, 1, 1),
+    0.05f,
+    16
+);
 
 
 /* Camera Instances */
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
-Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 15.0f, 0.0f),
+Orthographic ortho_cam = Orthographic(
+    glm::vec3(0.0f, 15.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, -1.0f), 
     glm::vec3(0.0f, 0.0f, 0.0f), 
     -10.0f, 
@@ -150,8 +159,6 @@ int main(void)
     x = y = z = 0.0f;
 
     float scale = 0.005f;
-
-
 
 
     /* Loop until the user closes the window */
@@ -271,46 +278,43 @@ void Key_Callback(
 ) {
     const float cameraSpeed = 0.1f;
 
+    /* Light Intensity */
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        pointLight.cycleIntensity();
+
     // movement of camera
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         tp_camera.moveForward(cameraSpeed);
         
-        
-
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         tp_camera.moveBackward(cameraSpeed);
        
         
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         tp_camera.moveLeft(cameraSpeed);
        
         
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         tp_camera.moveRight(cameraSpeed);
         
-        
-
     // rotation of camera
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         tp_camera.addPitch(cameraSpeed);
-        
-        
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+          
+    else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         tp_camera.subPitch(cameraSpeed);
        
-
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         tp_camera.subYaw(cameraSpeed);
         
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         tp_camera.addYaw(cameraSpeed);
         
-
-    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+    else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
         view_select = 0;
     }
 
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {    
+    else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {    
         view_select = 1; 
     }
 }
@@ -331,7 +335,7 @@ void Mouse_Callback(
             button_down = true;
         }
         // if left mouse button is released, set button_down flag to false
-        if (action == GLFW_RELEASE) button_down = false;
+        else if (action == GLFW_RELEASE) button_down = false;
     }
 }
 
