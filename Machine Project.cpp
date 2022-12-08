@@ -193,6 +193,7 @@ int main(void)
         modelShader.setMat4("transform", transform);
 
         enemy1Model.draw();
+
         for (int i = -5; i < 5; i++) {
             /* Enemy 2 - Stones */
             transform = glm::mat4(1.0f);
@@ -225,6 +226,8 @@ int main(void)
     }
 
     playerModel.deleteBuffers();
+    enemy1Model.deleteBuffers();
+    enemy2Model.deleteBuffers();
     skybox.deleteBuffers();
 
     glfwTerminate();
