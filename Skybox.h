@@ -22,7 +22,7 @@ public:
         0--------1
         */
         //Vertices for the cube
-        float size = 1.0f;
+        float size = 10.0f;
         float skyboxVertices[]{
             -size, -size, size, //0
             size, -size, size,  //1

@@ -30,16 +30,15 @@ public:
     }
 
     glm::mat4 getProjection() {
-        char print[10] = "good";
-        printf("%s ", print);
         return projection;
     }
 
     glm::mat4 getView() {
-        char print[10] = "good";
-        printf("%s ", print);
         return view;
     }
 
+    void orthorecalViewMatrix() {
+        view = glm::lookAt(cameraPos, cameraFront, cameraUp);
+    }
 
 };

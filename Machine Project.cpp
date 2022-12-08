@@ -27,7 +27,6 @@ glm::mat4 curr_projection;
 
 glm::vec3 curr_cameraPos;
 
-
 glm::mat4 projection = glm::perspective(
     glm::radians(60.0f),
     screenHeight / screenWidth, //aspect ratio
@@ -35,7 +34,7 @@ glm::mat4 projection = glm::perspective(
     1000.0f
 ); 
 
-Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 15.0f, 0.0f),
+Orthographic ortho_cam = Orthographic(glm::vec3(0.0f, 10.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), -10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
 
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
@@ -152,16 +151,20 @@ int main(void)
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        tp_camera.recalculateFront();
-        tp_camera.recalculateViewMatrix();
+        ;
 
         if (view_select == 0) {
             curr_view = tp_camera.getView();
             curr_projection = tp_camera.getProjection();
+            curr_cameraPos = tp_camera.getCameraPos();
+            tp_camera.recalculateFront();
+            tp_camera.recalculateViewMatrix();
         }
         if (view_select == 1) {
             curr_view = ortho_cam.getView();
             curr_projection = ortho_cam.getProjection();
+            curr_cameraPos = ortho_cam.getCameraPos();
+            ortho_cam.orthorecalViewMatrix();
         }
 
         glm::mat4 sky_view = glm::mat4(1.f);
@@ -243,38 +246,57 @@ void Key_Callback(
 ) {
     const float cameraSpeed = 0.1f;
 
-    // movement of camera
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        tp_camera.moveForward(cameraSpeed);
+    if (view_select == 0) {
+        // movement of camera
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            tp_camera.moveForward(cameraSpeed);
 
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        tp_camera.moveBackward(cameraSpeed);
-        
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        tp_camera.moveLeft(cameraSpeed);
-        
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        tp_camera.moveRight(cameraSpeed);
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            tp_camera.moveBackward(cameraSpeed);
 
-    // rotation of camera
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        tp_camera.addPitch(cameraSpeed);
-        
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        tp_camera.subPitch(cameraSpeed);
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            tp_camera.moveLeft(cameraSpeed);
 
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        tp_camera.subYaw(cameraSpeed);
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            tp_camera.moveRight(cameraSpeed);
 
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        tp_camera.addYaw(cameraSpeed);
+        // rotation of camera
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+            tp_camera.addPitch(cameraSpeed);
 
-    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-        view_select = 0;
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+            tp_camera.subPitch(cameraSpeed);
+
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+            tp_camera.subYaw(cameraSpeed);
+
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+            tp_camera.addYaw(cameraSpeed);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {    
-        view_select = 1; 
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) view_select = 1;
+
+    if (view_select == 1) {
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            ortho_cam.cameraPos.z -= 0.3;
+            ortho_cam.cameraFront.z -= 0.3;  
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            ortho_cam.cameraPos.z += 0.3;
+            ortho_cam.cameraFront.z += 0.3;
+        }          
+
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            ortho_cam.cameraPos.x -= 0.3;
+            ortho_cam.cameraFront.x -= 0.3;
+        }
+            
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            ortho_cam.cameraPos.x += 0.3;
+            ortho_cam.cameraFront.x += 0.3;
+        }
+      
     }
 }
 
