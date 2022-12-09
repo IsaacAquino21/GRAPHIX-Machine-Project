@@ -27,7 +27,7 @@
 
 /* Light Instances */
 Light pointLight = Light(
-    glm::vec3(0.0f, 10.0f, 5.0f),
+    glm::vec3(0.0f, 0.0f, 0.0f),
     glm::vec3(1, 1, 1),
     0.1f,
     glm::vec3(1, 1, 1),
@@ -159,13 +159,13 @@ int main(void)
 
     /* Enemy Models */
     Model enemyModels[6] = {
-        Model("3D/SubmarineV1.obj", glm::vec3(121.0f, -8.0f, 18.5f), 0.01f, glm::vec3(45.0f, 0.0f, 0.0f), modelShaders[3]),
-        Model("3D/SubmarineV2/SubmarineV2.obj", glm::vec3(15.5f, -3.5f, 18.5f), 1.0f, glm::vec3(-30.0f, 0.0f, 0.0f), 
+        Model("3D/SubmarineV1.obj", glm::vec3(121.0f, -34.0f, 18.5f), 0.01f, glm::vec3(45.0f, 0.0f, 0.0f), modelShaders[3]),
+        Model("3D/SubmarineV2/SubmarineV2.obj", glm::vec3(15.5f, -16.5f, 18.5f), 1.0f, glm::vec3(-30.0f, 0.0f, 0.0f), 
             modelShaders[2],
             MyTexture("3D/SubmarineV2/SubmarineV2Base.png", false)
         ),
-        Model("3D/SubmarineV3/SubmarineV3.obj", glm::vec3(40.0f, -5.5f, -24.5f), 0.001f, glm::vec3(45.0f, 90.0f, 0.0f), modelShaders[0]),
-        Model("3D/Dolphin/Dolphin.obj", glm::vec3(25.0f, -10.0f, -15.0f), 0.025f, glm::vec3(30.0f, 90.0f, 0.0f), 
+        Model("3D/SubmarineV3/SubmarineV3.obj", glm::vec3(40.0f, -14.5f, -24.5f), 0.001f, glm::vec3(45.0f, 90.0f, 0.0f), modelShaders[0]),
+        Model("3D/Dolphin/Dolphin.obj", glm::vec3(25.0f, -5.0f, -15.0f), 0.025f, glm::vec3(30.0f, 90.0f, 0.0f), 
             modelShaders[2],
             MyTexture("3D/Dolphin/Dolphin.jpg", false)
         ),
@@ -319,11 +319,15 @@ void Key_Callback(
         float dx = cameraSpeed * glm::sin(glm::radians(rotX));
         float dz = cameraSpeed * glm::cos(glm::radians(rotX));
 
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             playerPos += glm::vec3(dx, 0.0f, dz);
-
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            pointLight.setLightPos(playerPos);
+        }
+            
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
             playerPos -= glm::vec3(dx, 0.0f, dz);
+            pointLight.setLightPos(playerPos);
+        }
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
             rotX += cameraSpeed * 10;
@@ -331,11 +335,17 @@ void Key_Callback(
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
             rotX -= cameraSpeed * 10;
 
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-            if(playerPos.y < 0) playerPos.y += cameraSpeed;
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+            if (playerPos.y < 0) playerPos.y += cameraSpeed;
+            pointLight.setLightPos(playerPos);
+        }
+            
 
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
             playerPos.y -= cameraSpeed;
+            pointLight.setLightPos(playerPos);
+        }
+            
 
         if (view_select == 0) {
             float horD = THIRD_POV_X + glm::cos(glm::radians(tp_camera.getPitch()));
@@ -354,6 +364,7 @@ void Key_Callback(
             fp_camera.yaw = 90 - rotX;
             fp_camera.setCameraPos(glm::vec3(newX, playerPos.y, newZ));
         }
+
     }
 }
 

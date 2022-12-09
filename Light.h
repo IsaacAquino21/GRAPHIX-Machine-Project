@@ -71,6 +71,10 @@ public:
         currIntensity = (currIntensity + 1) % 3;
     }
 
+    void setLightPos(glm::vec3 position) {
+        lightPos = position;
+    }
+
 
 };
 
