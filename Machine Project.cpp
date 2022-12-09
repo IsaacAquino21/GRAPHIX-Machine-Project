@@ -63,8 +63,8 @@ Perspective tp_camera = Perspective(glm::vec3(THIRD_POV_X, THIRD_POV_Y, 0.0f),
     glm::vec3(0.0f, 0.0f, 1.0f), 
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
-    60.0f, 
-    0.1f, 
+    60.0f,
+    0.1f,
     50.0f
 );
 
@@ -94,7 +94,6 @@ bool button_down = false; // used for checking if mouse is clicked
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods);
 void Mouse_Callback(GLFWwindow* window, int button, int action, int mods);
 void Cursor_Callback(GLFWwindow* window, double xpos, double ypos);
-glm::vec3 calculateFront(float yaw, float pitch);
 
 int main(void)
 {
@@ -285,7 +284,6 @@ void Key_Callback(
             curr_cameraPos = tp_camera.getCameraPos();
         }
     } else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-        cout << view_select << endl;
         view_select = 2;
         curr_view = ortho_camera.getView();
         curr_projection = ortho_camera.getProjection();
@@ -406,20 +404,4 @@ void Cursor_Callback(
             tp_camera.setCameraPos(glm::vec3(newX, playerPos.y + THIRD_POV_Y, newZ));
         }
     }
-}
-
-glm::vec3 calculateFront(float yaw, float pitch) {
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction.y = sin(glm::radians(pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
-    // re-calculates the cameraFront based on the yaw and pitch
-    return glm::normalize(direction);
 }
