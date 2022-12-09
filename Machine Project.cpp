@@ -21,11 +21,9 @@
 #define SCREEN_WIDTH 900.0f
 #define SCREEN_HEIGHT 900.0f
 
-/* Global Variables used for switching view and projection */
-float view_select = 0;
-glm::mat4 curr_view;
-glm::mat4 curr_projection;
-glm::vec3 curr_cameraPos;
+#define THIRD_POV_X 6.0f
+#define THIRD_POV_Y 2.5f
+#define FIRST_POV_X -6.0f
 
 /* Light Instances */
 Light pointLight = Light(
@@ -48,7 +46,7 @@ Light directionalLight = Light(
 
 /* Camera Instances */
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
-Orthographic ortho_cam = Orthographic(
+Orthographic ortho_camera = Orthographic(
     glm::vec3(0.0f, 15.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, -1.0f), 
     glm::vec3(0.0f, 0.0f, 0.0f), 
@@ -60,8 +58,8 @@ Orthographic ortho_cam = Orthographic(
     100.0f
 );
 
-Perspective tp_camera = Perspective(glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(0.0f, 1.0f, 0.0f), 
+Perspective tp_camera = Perspective(glm::vec3(THIRD_POV_X, THIRD_POV_Y, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, 1.0f), 
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
@@ -70,7 +68,7 @@ Perspective tp_camera = Perspective(glm::vec3(0.0f, 0.0f, 0.0f),
     50.0f
 );
 
-Perspective fp_camera = Perspective(glm::vec3(0.0f, 0.0f, 0.0f),
+Perspective fp_camera = Perspective(glm::vec3(FIRST_POV_X, 0.0f, 0.0f),
     glm::vec3(0.0f, 1.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, 1.0f),
     SCREEN_HEIGHT,
@@ -80,6 +78,15 @@ Perspective fp_camera = Perspective(glm::vec3(0.0f, 0.0f, 0.0f),
     100.0f
 );
 
+glm::vec3 playerPos = glm::vec3(0.0f);
+float rotX = 90.0f;
+
+/* Global Variables used for switching view and projection */
+float view_select = 0;
+glm::mat4 curr_view;
+glm::mat4 curr_projection;
+glm::vec3 curr_cameraPos;
+
 double last_x, last_y;
 bool button_down = false; // used for checking if mouse is clicked
 
@@ -87,6 +94,7 @@ bool button_down = false; // used for checking if mouse is clicked
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods);
 void Mouse_Callback(GLFWwindow* window, int button, int action, int mods);
 void Cursor_Callback(GLFWwindow* window, double xpos, double ypos);
+glm::vec3 calculateFront(float yaw, float pitch);
 
 int main(void)
 {
@@ -141,7 +149,7 @@ int main(void)
         MyShader("Shaders/noTBN.vert", "Shaders/color.frag") // with no textures (so only color)
     };
 
-    /* Player Model */
+    /* Player contains its Model */
     Model playerModel = Model("3D/Odyssey/Odyssey.obj", glm::vec3(0.0f, 0.0f, 0.0f), 0.005f, glm::vec3(90.0f, 0.0f, 0.0f),
         modelShaders[0],
         MyTexture("3D/Odyssey/OdysseyHullTexture.png", false),
@@ -178,33 +186,28 @@ int main(void)
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        ;
 
         if (view_select == 0) {
             // third person
+            tp_camera.recalculateFront();
+
             curr_view = tp_camera.getView();
             curr_projection = tp_camera.getProjection();
             curr_cameraPos = tp_camera.getCameraPos();
-            tp_camera.recalculateFront();
 
-            playerModel.setPosition(curr_cameraPos.x + 7.5f, curr_cameraPos.y -2.5f, curr_cameraPos.z);
-            playerModel.setRotation(-tp_camera.getYaw() + 90.0f, 0.0f, 0.0f);
+            playerModel.setPosition(playerPos);
+            playerModel.setRotation(rotX, 0.0f, 0.0f);
         } else if (view_select == 1) {
             // first person
+            fp_camera.recalculateFront();
+
             curr_view = fp_camera.getView();
             curr_projection = fp_camera.getProjection();
             curr_cameraPos = fp_camera.getCameraPos();
-            fp_camera.recalculateFront();
 
-            playerModel.setPosition(curr_cameraPos.x - 7.5f, curr_cameraPos.y, curr_cameraPos.z);
-            playerModel.setRotation(-fp_camera.getYaw() + 90.0f, 0.0f, 0.0f);
-
+            playerModel.setPosition(playerPos);
+            playerModel.setRotation(rotX, 0.0f, 0.0f);
             // draw sonar here
-        }  else if (view_select == 2) {
-            // ortho
-            curr_view = ortho_cam.getView();
-            curr_projection = ortho_cam.getProjection();
-            curr_cameraPos = ortho_cam.getCameraPos();
         }
 
         skybox.drawSkybox(skyboxShader, curr_view, curr_projection, skybox_uwTexture.getTexture());
@@ -272,75 +275,82 @@ void Key_Callback(
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
         if (view_select == 0) {
             view_select = 1;
-            fp_camera.setCameraPos(tp_camera.getCameraPos());
+            curr_view = fp_camera.getView();
+            curr_projection = fp_camera.getProjection();
+            curr_cameraPos = fp_camera.getCameraPos();
         } else {
             view_select = 0;
-            tp_camera.setCameraPos(fp_camera.getCameraPos());
+            curr_view = tp_camera.getView();
+            curr_projection = tp_camera.getProjection();
+            curr_cameraPos = tp_camera.getCameraPos();
         }
     } else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-        if (view_select == 0) ortho_cam.setCameraPos(glm::vec3(tp_camera.getCameraPos().x, ortho_cam.getCameraPos().y, tp_camera.getCameraPos().z));
-        else ortho_cam.setCameraPos(glm::vec3(fp_camera.getCameraPos().x, ortho_cam.getCameraPos().y, fp_camera.getCameraPos().z));
-        cout << ortho_cam.getCameraPos().x << ";" << ortho_cam.getCameraPos().y << ";" << ortho_cam.getCameraPos().z << endl;
+        cout << view_select << endl;
         view_select = 2;
+        curr_view = ortho_camera.getView();
+        curr_projection = ortho_camera.getProjection();
+        curr_cameraPos = ortho_camera.getCameraPos();
     }
 
-    if (view_select == 0) {
-        // movement of camera + player
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            tp_camera.moveForward(cameraSpeed);
-
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            tp_camera.moveBackward(cameraSpeed);
-
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            tp_camera.subYaw(cameraSpeed * 5);
-
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            tp_camera.addYaw(cameraSpeed * 5);
-
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-            tp_camera.addY(cameraSpeed);
-
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-            tp_camera.subY(cameraSpeed);
-    } else if (view_select == 1) {
-        // movement of camera + player
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            fp_camera.moveForward(cameraSpeed);
-
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            fp_camera.moveBackward(cameraSpeed);
-
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            fp_camera.subYaw(cameraSpeed * 5);
-
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            fp_camera.addYaw(cameraSpeed * 5);
-
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-            fp_camera.addY(cameraSpeed);
-
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-            fp_camera.subY(cameraSpeed);
-    } else if (view_select == 2) {
+    if (view_select == 2) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            ortho_cam.cameraPos.z -= 0.3;
-            ortho_cam.cameraFront.z -= 0.3;  
+            ortho_camera.cameraPos.z -= 0.3;
+            ortho_camera.cameraFront.z -= 0.3;
         }
 
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            ortho_cam.cameraPos.z += 0.3;
-            ortho_cam.cameraFront.z += 0.3;
-        }          
+            ortho_camera.cameraPos.z += 0.3;
+            ortho_camera.cameraFront.z += 0.3;
+        }
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            ortho_cam.cameraPos.x -= 0.3;
-            ortho_cam.cameraFront.x -= 0.3;
+            ortho_camera.cameraPos.x -= 0.3;
+            ortho_camera.cameraFront.x -= 0.3;
         }
-            
+
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            ortho_cam.cameraPos.x += 0.3;
-            ortho_cam.cameraFront.x += 0.3;
+            ortho_camera.cameraPos.x += 0.3;
+            ortho_camera.cameraFront.x += 0.3;
+        }
+    } else {
+        // based on movement of player update camera
+        float dx = cameraSpeed * glm::sin(glm::radians(rotX));
+        float dz = cameraSpeed * glm::cos(glm::radians(rotX));
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            playerPos += glm::vec3(dx, 0.0f, dz);
+
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            playerPos -= glm::vec3(dx, 0.0f, dz);
+
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            rotX += cameraSpeed * 10;
+
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            rotX -= cameraSpeed * 10;
+
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+            playerPos.y += cameraSpeed;
+
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+            playerPos.y -= cameraSpeed;
+
+        if (view_select == 0) {
+            float horD = THIRD_POV_X + glm::cos(glm::radians(tp_camera.getPitch()));
+            float verD = THIRD_POV_X + glm::sin(glm::radians(tp_camera.getPitch()));
+            float newX = playerPos.x - horD * glm::sin(glm::radians(rotX));
+            float newZ = playerPos.z - horD * glm::cos(glm::radians(rotX));
+
+            tp_camera.yaw = 90 - rotX;
+            tp_camera.setCameraPos(glm::vec3(newX, playerPos.y + THIRD_POV_Y, newZ));
+        } else if (view_select == 1) {
+            float horD = FIRST_POV_X + glm::cos(glm::radians(fp_camera.getPitch()));
+            float verD = FIRST_POV_X + glm::sin(glm::radians(fp_camera.getPitch()));
+            float newX = playerPos.x - horD * glm::sin(glm::radians(rotX));
+            float newZ = playerPos.z - horD * glm::cos(glm::radians(rotX));
+
+            fp_camera.yaw = 90 - rotX;
+            fp_camera.setCameraPos(glm::vec3(newX, playerPos.y, newZ));
         }
     }
 }
@@ -377,18 +387,39 @@ void Cursor_Callback(
     if (button_down) {
         // determines the distance from the click and the release (offset)
         float xoffset = xpos - last_x;
-        float yoffset = last_y - ypos;
         last_x = xpos;
-        last_y = ypos;
 
         // takes into consideration the intended sensitivity
         float sensitivity = 0.1f;
         xoffset *= sensitivity;
-        yoffset *= sensitivity;
 
         // modifies the yaw and pitch values based on the offset of mouse movement
-        tp_camera.addYaw(xoffset);
-        // tp_camera.addPitch(yoffset);
-                    
+        if (view_select == 0) {
+            rotX -= xoffset;
+
+            float horD = THIRD_POV_X + glm::cos(glm::radians(0.0f));
+            float verD = THIRD_POV_X + glm::sin(glm::radians(0.0f));
+            float newX = playerPos.x - horD * glm::sin(glm::radians(rotX));
+            float newZ = playerPos.z - horD * glm::cos(glm::radians(rotX));
+
+            tp_camera.yaw = 90 - rotX;
+            tp_camera.setCameraPos(glm::vec3(newX, playerPos.y + THIRD_POV_Y, newZ));
+        }
     }
+}
+
+glm::vec3 calculateFront(float yaw, float pitch) {
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+    // re-calculates the cameraFront based on the yaw and pitch
+    return glm::normalize(direction);
 }

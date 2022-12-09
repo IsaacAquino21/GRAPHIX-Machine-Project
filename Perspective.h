@@ -1,15 +1,18 @@
 #pragma once
 #include <cstdio>
-using namespace std;
-#include "Camera.h"
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
+
+#include "Camera.h"
+#include "Player.h"
+
+using namespace std;
+
 class Perspective :
     public Camera
 {
 public:
-    glm::mat4 projection;
     float yaw;
     float pitch;
     /* Parameters:
@@ -22,13 +25,12 @@ public:
      * zNear: near distance (for projection)
      * zFar: Far distance (for projection)
      */
-    Perspective(glm::vec3 position, glm::vec3 up, glm::vec3 front, float screenHeight, float screenWidth, float degrees, float zNear, float zFar) :Camera(position, up, front) {
-        projection = glm::perspective(
-            glm::radians(degrees),
-            screenHeight / screenWidth, //aspect ratio
-            zNear,
-            zFar
-        );
+    Perspective(glm::vec3 position, glm::vec3 up, glm::vec3 front, float screenHeight, float screenWidth, float degrees, float zNear, float zFar) :Camera(position, up, front, glm::perspective(
+        glm::radians(degrees),
+        screenHeight / screenWidth, //aspect ratio
+        zNear,
+        zFar
+    )) {
         yaw =  0.0f;
         pitch = 0.0f;
     }
@@ -53,14 +55,14 @@ public:
     }
 
     void moveBackward(float cameraSpeed) {
-      cameraPos -= cameraSpeed * cameraFront; // moves backward
+        cameraPos -= cameraSpeed * cameraFront; // moves backward
     }
 
-    void moveLeft(float cameraSpeed) {
+    void moveUpward(float cameraSpeed) {
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; // moves to the left
     }
 
-    void moveRight(float cameraSpeed) {
+    void moveDownward(float cameraSpeed) {
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; //move to the right
     }
 

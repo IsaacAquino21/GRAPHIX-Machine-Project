@@ -36,9 +36,6 @@ uniform vec3 ambientColor2;
 uniform float specStr2;
 uniform float specPhong2;
 
-//intensity of directional light
-uniform float intensity2;
-
 in vec2 texCoord;
 in vec3 normCoord;
 in vec3 fragPos;
@@ -125,5 +122,5 @@ vec3 calcDirLight(vec3 lightPos, vec3 lightColor, float ambientStr, vec3 ambient
     vec3 specCol = spec * specStr * lightColor;
 
     //return combined value with applied intensity
-    return (diffuse + ambientCol + specCol) * intensity2;
+    return (diffuse + ambientCol + specCol) * 1.0f;
 }

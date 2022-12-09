@@ -343,8 +343,8 @@ public:
     }
 
     /* This method is sets the position of the Model given an X, Y, and Z value */
-    void setPosition(float x, float y, float z) {
-        position = glm::vec3(x, y, z);
+    void setPosition(glm::vec3 pos) {
+        position = pos;
     }
 
     /* This method is sets the rotation of the Model given an X, Y, and Z value */

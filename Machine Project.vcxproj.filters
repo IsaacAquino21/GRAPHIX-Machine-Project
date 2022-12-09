@@ -62,5 +62,16 @@
     <ClInclude Include="Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\noTBN.vert" />
+    <None Include="Shaders\texture1.frag" />
+    <None Include="Shaders\texture2.frag" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Shaders\color.frag" />
   </ItemGroup>
 </Project>

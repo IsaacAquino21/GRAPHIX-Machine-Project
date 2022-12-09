@@ -174,6 +174,7 @@
     <ClInclude Include="MyTexture.h" />
     <ClInclude Include="Orthographic.h" />
     <ClInclude Include="Perspective.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="SkyboxTexture.h" />
     <ClInclude Include="stb_image.h" />
