@@ -328,7 +328,7 @@ void Key_Callback(
             rotX -= cameraSpeed * 10;
 
         if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-            playerPos.y += cameraSpeed;
+            if(playerPos.y < 0) playerPos.y += cameraSpeed;
 
         if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
             playerPos.y -= cameraSpeed;
