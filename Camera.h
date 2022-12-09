@@ -44,7 +44,7 @@ public:
 	}
 
 	glm::mat4 getView() {
-		return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		return glm::lookAt(cameraPos, cameraPos + getCameraFront(), cameraUp);
 	}
 
 	void setCameraPos(glm::vec3 pos) {

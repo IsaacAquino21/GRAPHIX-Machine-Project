@@ -1,6 +1,5 @@
 #version 330 core // version
 
-
 /** Camera **/
 uniform vec3 cameraPos;
 

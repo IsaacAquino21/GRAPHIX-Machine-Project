@@ -327,6 +327,26 @@ public:
         glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / fullVertexLength);
     }
 
+    /* This method sets the transformation of the model then
+     * calls the current VAO and shaderProgram to draw the OBJ
+     */
+    void draw(MyShader s) {
+        glm::mat4 transform = glm::mat4(1.0f);
+        transform = glm::translate(transform, position);
+        transform = glm::scale(transform, scale);
+        transform = glm::rotate(transform, glm::radians(rotation.x), glm::vec3(0, 1, 0));
+        transform = glm::rotate(transform, glm::radians(rotation.y), glm::vec3(-1, 0, 0));
+        transform = glm::rotate(transform, glm::radians(rotation.z), glm::vec3(0, 0, 1));
+
+        s.useProgram();
+        s.setMat4("transform", transform);
+
+        glBindVertexArray(VAO);
+
+        // draws the obj with regards to the operations applied
+        glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / fullVertexLength);
+    }
+
     /* This method is returns the position of the Model */
     glm::vec3 getPosition() {
         return position;
@@ -350,6 +370,10 @@ public:
     /* This method is sets the rotation of the Model given an X, Y, and Z value */
     void setRotation(float x, float y, float z) {
         rotation = glm::vec3(x, y, z);
+    }
+
+    void setShader(MyShader s) {
+        shader = s;
     }
 
     /* This method Deletes VAO, and VBO buffers */
