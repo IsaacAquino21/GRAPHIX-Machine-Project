@@ -27,7 +27,7 @@
 
 /* Light Instances */
 Light pointLight = Light(
-    glm::vec3(0.0f, 10.0f, 5.0f),
+    glm::vec3(0.0f, 0.0f, 0.0f),
     glm::vec3(1, 1, 1),
     0.1f,
     glm::vec3(1, 1, 1),
@@ -315,11 +315,15 @@ void Key_Callback(
         float dx = cameraSpeed * glm::sin(glm::radians(rotX));
         float dz = cameraSpeed * glm::cos(glm::radians(rotX));
 
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             playerPos += glm::vec3(dx, 0.0f, dz);
-
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            pointLight.setLightPos(playerPos);
+        }
+            
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
             playerPos -= glm::vec3(dx, 0.0f, dz);
+            pointLight.setLightPos(playerPos);
+        }
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
             rotX += cameraSpeed * 10;
@@ -327,11 +331,17 @@ void Key_Callback(
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
             rotX -= cameraSpeed * 10;
 
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-            if(playerPos.y < 0) playerPos.y += cameraSpeed;
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+            if (playerPos.y < 0) playerPos.y += cameraSpeed;
+            pointLight.setLightPos(playerPos);
+        }
+            
 
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
             playerPos.y -= cameraSpeed;
+            pointLight.setLightPos(playerPos);
+        }
+            
 
         if (view_select == 0) {
             float horD = THIRD_POV_X + glm::cos(glm::radians(tp_camera.getPitch()));
@@ -350,6 +360,7 @@ void Key_Callback(
             fp_camera.yaw = 90 - rotX;
             fp_camera.setCameraPos(glm::vec3(newX, playerPos.y, newZ));
         }
+
     }
 }
 
