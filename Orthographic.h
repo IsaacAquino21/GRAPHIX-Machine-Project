@@ -6,8 +6,6 @@ class Orthographic :
     public Camera
 {
 public:
-    glm::mat4 projection;
-
     /* Parameters:
      * Position: location of camera
      * up: World up for camera
@@ -18,15 +16,14 @@ public:
      * zNear: near distance (for projection)
      * zFar: Far distance (for projection)
      */
-    Orthographic(glm::vec3 position, glm::vec3 up, glm::vec3 front, float left, float right, float bottom, float top, float zNear, float zFar) :Camera(position, up, front) {
-        projection = glm::ortho(
-            left, //left
-            right, //right
-            bottom, //bottom
-            top, //top
-            zNear, //zNear
-            zFar //zFar
-        );
+    Orthographic(glm::vec3 position, glm::vec3 up, glm::vec3 front, float left, float right, float bottom, float top, float zNear, float zFar) :Camera(position, up, front, glm::ortho(
+        left, //left
+        right, //right
+        bottom, //bottom
+        top, //top
+        zNear, //zNear
+        zFar //zFar
+    )) {
     }
 
     glm::mat4 getProjection() {
@@ -34,11 +31,6 @@ public:
     }
 
     glm::mat4 getView() {
-        return view;
+        return glm::lookAt(getCameraPos(), getCameraFront(), getCameraUp());
     }
-
-    void orthorecalViewMatrix() {
-        view = glm::lookAt(cameraPos, cameraFront, cameraUp);
-    }
-
 };

@@ -5,10 +5,15 @@
 class Light
 {
 public:
+    const float intensities[3] = { 1.5f, 3.0f, 6.0f };
+    int currIntensity = 0;
+
 	// Position of Light
 	glm::vec3 lightPos;
+
 	// Light color
 	glm::vec3 lightColor;
+
     // Ambient Strength
     float ambientStr;
 
@@ -59,24 +64,11 @@ public:
     }
 
     float getIntensity() {
-        return intensity;
+        return intensities[currIntensity];
     }
 
     void cycleIntensity() {
-        if (intensity == 6.0f) {
-            intensity = 8.0f;
-            printf("Intensity set to: Medium\n");
-        }
-            
-        else if (intensity == 8.0f) {
-            intensity = 10.0f;
-            printf("Intensity set to: High\n");
-        }
-            
-        else if (intensity == 10.0f) {
-            intensity = 6.0f;
-            printf("Intensity set to: Low\n");
-        }       
+        currIntensity = (currIntensity + 1) % 3;
     }
 
 

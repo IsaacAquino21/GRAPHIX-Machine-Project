@@ -10,19 +10,20 @@ class Camera
 public:
 	/* Position of camera in the world */
 	glm::vec3 cameraPos;
-	/* World up*/
+
+	/* World Up */
 	glm::vec3 cameraUp;
+
 	/* Center - where the camera is looking */
 	glm::vec3 cameraFront;
 
-	/* View Matrix */
-	glm::mat4 view;
+	glm::mat4 projection;
 
-	Camera(glm::vec3 position, glm::vec3 up, glm::vec3 front) {
+	Camera(glm::vec3 position, glm::vec3 up, glm::vec3 front, glm::mat4 proj) {
 		cameraPos = position;
 		cameraUp = up;
 		cameraFront = front;
-		view = glm::lookAt(cameraPos, cameraFront, cameraUp);
+		projection = proj;
 	}
 
 	/** Getters **/
@@ -38,8 +39,23 @@ public:
 		return cameraFront;
 	}
 
-	glm::mat4 getView() {
-		return view;
+	glm::mat4 getProjection() {
+		return projection;
 	}
 
+	glm::mat4 getView() {
+		return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+	}
+
+	void setCameraPos(glm::vec3 pos) {
+		cameraPos = pos;
+	}
+
+	void setCameraFront(glm::vec3 front) {
+		cameraFront = front;
+	}
+
+	void setCameraUp(glm::vec3 up) {
+		cameraUp = up;
+	}
 };

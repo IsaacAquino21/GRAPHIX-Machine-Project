@@ -18,31 +18,13 @@
 #include "Light.h"
 
 /* Screen Resolution */
-float screenWidth = 900.0f;
-float screenHeight = 900.0f;
+#define SCREEN_WIDTH 900.0f
+#define SCREEN_HEIGHT 900.0f
 
-/* Global Variables used for switching view and projection */
-float view_select = 0;
-glm::mat4 curr_view;
-glm::mat4 curr_projection;
-glm::vec3 curr_cameraPos;
+#define THIRD_POV_X 6.0f
+#define THIRD_POV_Y 2.5f
+#define FIRST_POV_X -6.0f
 
-// Position of Light
-glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 5.0f);
-// Light color
-glm::vec3 lightColor = glm::vec3(1, 1, 1);
-
-// Ambient Strength
-float ambientStr = 0.1f;
-
-// Ambient Color
-glm::vec3 ambientColor = lightColor;
-
-// Specular Strength
-float specStr = 0.05f;
-
-// Specular Phong
-float specPhong = 16;
 /* Light Instances */
 Light pointLight = Light(
     glm::vec3(0.0f, 10.0f, 5.0f),
@@ -62,10 +44,9 @@ Light directionalLight = Light(
     25.0f
 );
 
-
 /* Camera Instances */
 // Camera Movement were referenced from: https://learnopengl.com/Getting-started/Camera
-Orthographic ortho_cam = Orthographic(
+Orthographic ortho_camera = Orthographic(
     glm::vec3(0.0f, 15.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, -1.0f), 
     glm::vec3(0.0f, 0.0f, 0.0f), 
@@ -77,15 +58,34 @@ Orthographic ortho_cam = Orthographic(
     100.0f
 );
 
-Perspective tp_camera = Perspective(glm::vec3(-8.0f, 2.0f, 0.0f),
-    glm::vec3(0.0f, 1.0f, 0.0f), 
+Perspective tp_camera = Perspective(glm::vec3(THIRD_POV_X, THIRD_POV_Y, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, 1.0f), 
-    screenHeight, 
-    screenWidth,
-    60.0f, 
-    0.1f, 
+    SCREEN_HEIGHT,
+    SCREEN_WIDTH,
+    60.0f,
+    0.1f,
     50.0f
 );
+
+Perspective fp_camera = Perspective(glm::vec3(FIRST_POV_X, 0.0f, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f),
+    glm::vec3(0.0f, 0.0f, 1.0f),
+    SCREEN_HEIGHT,
+    SCREEN_WIDTH,
+    60.0f,
+    0.1f,
+    100.0f
+);
+
+glm::vec3 playerPos = glm::vec3(0.0f);
+float rotX = 90.0f;
+
+/* Global Variables used for switching view and projection */
+float view_select = 0;
+glm::mat4 curr_view;
+glm::mat4 curr_projection;
+glm::vec3 curr_cameraPos;
 
 double last_x, last_y;
 bool button_down = false; // used for checking if mouse is clicked
@@ -104,7 +104,7 @@ int main(void)
         return -1;
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(screenWidth, screenHeight, "GRAPHIX - Machine Project", NULL, NULL);
+    window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "GRAPHIX - Machine Project", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -123,19 +123,12 @@ int main(void)
     glfwSetMouseButtonCallback(window, Mouse_Callback);
     glfwSetCursorPosCallback(window, Cursor_Callback);
 
-    MyShader modelShader = MyShader("Shaders/main.vert", "Shaders/main.frag");
-
     MyShader skyboxShader = MyShader("Shaders/skybox.vert", "Shaders/skybox.frag");
-
-    MyTexture modelTexture = MyTexture("3D/Odyssey/OdysseyHullTexture.png", false);
-    MyTexture normTexture = MyTexture("3D/Odyssey/OdysseyHullNormal.png", false);
-    MyTexture lightsTexture = MyTexture("3D/Odyssey/OdysseyHullEmissive.png", false);
 
     /* Create Skybox */
     Skybox skybox = Skybox();
 
-    /* Create texture for skybox */
-    //underwater textures
+    /* List of underwater textures */
     std::string faceSkybox[]{
         "Skybox/uw_ft.jpg", //front
         "Skybox/uw_bk.jpg", //back
@@ -145,116 +138,106 @@ int main(void)
         "Skybox/uw_lf.jpg", //left
     };
 
+    /* Create texture for skybox */
     SkyboxTexture skybox_uwTexture = SkyboxTexture(faceSkybox);
 
-    Model playerModel = Model("3D/Odyssey/Odyssey.obj", 0);
-    Model enemy1Model = Model("3D/Submarine.obj", 1);
-    Model enemy2Model = Model("3D/MossyRocks.obj", 2);
-    //Model enemy3Model = Model("3D/Mine.obj", 3);
+    MyShader modelShaders[4] = {
+        MyShader("Shaders/main.vert", "Shaders/main.frag"), // with normal mapping
+        MyShader("Shaders/noTBN.vert", "Shaders/texture2.frag"), // with 2 textures
+        MyShader("Shaders/noTBN.vert", "Shaders/texture1.frag"), // with 1 texture only
+        MyShader("Shaders/noTBN.vert", "Shaders/color.frag") // with no textures (so only color)
+    };
+
+    /* Player contains its Model */
+    Model playerModel = Model("3D/Odyssey/Odyssey.obj", glm::vec3(0.0f, 0.0f, 0.0f), 0.005f, glm::vec3(90.0f, 0.0f, 0.0f),
+        modelShaders[0],
+        MyTexture("3D/Odyssey/OdysseyHullTexture.png", false),
+        MyTexture("3D/Odyssey/OdysseyHullEmissive.png", false),
+        MyTexture("3D/Odyssey/OdysseyHullNormal.png", false)
+    );
+
+    /* Enemy Models */
+    Model enemyModels[6] = {
+        Model("3D/SubmarineV1.obj", glm::vec3(121.0f, -8.0f, 18.5f), 0.01f, glm::vec3(45.0f, 0.0f, 0.0f), modelShaders[3]),
+        Model("3D/SubmarineV2/SubmarineV2.obj", glm::vec3(15.5f, -3.5f, 18.5f), 1.0f, glm::vec3(-30.0f, 0.0f, 0.0f), 
+            modelShaders[2],
+            MyTexture("3D/SubmarineV2/SubmarineV2Base.png", false)
+        ),
+        Model("3D/SubmarineV3/SubmarineV3.obj", glm::vec3(40.0f, -5.5f, -24.5f), 0.001f, glm::vec3(45.0f, 90.0f, 0.0f), modelShaders[0]),
+        Model("3D/Dolphin/Dolphin.obj", glm::vec3(25.0f, -10.0f, -15.0f), 0.025f, glm::vec3(30.0f, 90.0f, 0.0f), 
+            modelShaders[2],
+            MyTexture("3D/Dolphin/Dolphin.jpg", false)
+        ),
+        Model("3D/SeaTurtle/SeaTurtle.obj", glm::vec3(150.0f, -4.0f, -9.5f), 0.025f, glm::vec3(45.0f, 45.0f, -120.0f),
+            modelShaders[2],
+            MyTexture("3D/SeaTurtle/SeaTurtle.jpg", false)),
+        Model("3D/SharkV2/SharkV2.obj", glm::vec3(150.0f, -4.0f, 8.5f), 0.025f, glm::vec3(-45.0f, 90.0f, 30.0f), 
+            modelShaders[2], 
+            MyTexture("3D/SharkV2/SharkV2Texture.jpg", false)
+        ),
+    };
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-        
-    float x, y, z;
-    x = y = z = 0.0f;
-
-    float scale = 0.005f;
-
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        ;
 
         if (view_select == 0) {
+            // third person
+            tp_camera.recalculateFront();
+
             curr_view = tp_camera.getView();
             curr_projection = tp_camera.getProjection();
             curr_cameraPos = tp_camera.getCameraPos();
-            tp_camera.recalculateFront();
-            tp_camera.recalculateViewMatrix();
+
+            playerModel.setPosition(playerPos);
+            playerModel.setRotation(rotX, 0.0f, 0.0f);
+        } else if (view_select == 1) {
+            // first person
+            fp_camera.recalculateFront();
+
+            curr_view = fp_camera.getView();
+            curr_projection = fp_camera.getProjection();
+            curr_cameraPos = fp_camera.getCameraPos();
+
+            playerModel.setPosition(playerPos);
+            playerModel.setRotation(rotX, 0.0f, 0.0f);
+            // draw sonar here
         }
-        if (view_select == 1) {
-            curr_view = ortho_cam.getView();
-            curr_projection = ortho_cam.getProjection();
-            curr_cameraPos = ortho_cam.getCameraPos();
-            ortho_cam.orthorecalViewMatrix();
+
+        skybox.drawSkybox(skyboxShader, curr_view, curr_projection, skybox_uwTexture.getTexture());
+
+        // Load All Shaders
+        for (MyShader shader : modelShaders) {
+            shader.useProgram();
+            shader.setMat4("projection", curr_projection);
+            shader.setMat4("view", curr_view);
+            shader.setVec3("cameraPos", tp_camera.getCameraPos());
+            shader.setVec3("lightPos", pointLight.getLightPos());
+            shader.setVec3("lightColor", pointLight.getLightColor());
+            shader.setFloat("ambientStr", pointLight.getAmbientStr());
+            shader.setVec3("ambientColor", pointLight.getAmbientColor());
+            shader.setFloat("specStr", pointLight.getSpecularStrength());
+            shader.setFloat("specPhong", pointLight.getSpecularPhong());
+            shader.setFloat("intensity", pointLight.getIntensity());
+            shader.setVec3("lightPos2", directionalLight.getLightPos());
+            shader.setVec3("lightColor2", directionalLight.getLightColor());
+            shader.setFloat("ambientStr2", directionalLight.getAmbientStr());
+            shader.setVec3("ambientColor2", directionalLight.getAmbientColor());
+            shader.setFloat("specStr2", directionalLight.getSpecularStrength());
+            shader.setFloat("specPhong2", directionalLight.getSpecularPhong());
+            shader.setFloat("intensity2", directionalLight.getIntensity());
         }
 
-        glm::mat4 transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, glm::vec3(x, y, z));
-        transform = glm::scale(transform, glm::vec3(scale));
-        transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
-
-        glm::mat4 sky_view = glm::mat4(1.f);
-        sky_view = glm::mat4(glm::mat3(curr_view));
-
-        skyboxShader.useProgram();
-        skyboxShader.setMat4("view", sky_view);
-        skyboxShader.setMat4("projection", curr_projection);
-
-        glDepthMask(GL_FALSE);
-        glDepthFunc(GL_LEQUAL);
-
-        glBindVertexArray(skybox.getVAO());
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_uwTexture.getTexture());
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
-
-        modelShader.useProgram();
-        modelShader.setMat4("transform", transform);
-        modelShader.setMat4("projection", curr_projection);
-        modelShader.setMat4("view", curr_view);
-        modelShader.setVec3("lighPos", lightPos);
-        modelShader.setVec3("lightColor", lightColor);
-        modelShader.setFloat("ambientStr", ambientStr);
-        modelShader.setVec3("ambientColor", ambientColor);
-        modelShader.setVec3("cameraPos", curr_cameraPos);
-        modelShader.setFloat("specStr", specStr);
-        modelShader.setFloat("specPhong", specPhong);
-        modelShader.setTexture("tex0", modelTexture.getTexId(), 0);
-        modelShader.setTexture("norm_tex", normTexture.getTexId(), 1);
-        modelShader.setTexture("tex1", lightsTexture.getTexId(), 2);
-
-        // Draw VAO
+        // Draw Player Model
         playerModel.draw();
 
-        /* Submarine */
-        transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, glm::vec3(7.5f, -2.5f, 7.5f));
-        transform = glm::scale(transform, glm::vec3(0.0025f));
-        transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
-
-        modelShader.useProgram();
-        modelShader.setMat4("transform", transform);
-
-        enemy1Model.draw();
-        for (int i = -5; i < 5; i++) {
-            /* Enemy 2 - Stones */
-            transform = glm::mat4(1.0f);
-            transform = glm::translate(transform, glm::vec3(10.0f * i, -20.0f, -5.0f * i));
-            transform = glm::scale(transform, glm::vec3(1.0f));
-            transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
-
-            modelShader.useProgram();
-            modelShader.setMat4("transform", transform);
-
-            enemy2Model.draw();
-        }
-
-        /* Enemy 3 - AkulaClassAtackSubmarine */
-        /*transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, glm::vec3(-7.5f, 5.5f, -7.5f));
-        transform = glm::scale(transform, glm::vec3(0.01f));
-        transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
-
-        modelShader.useProgram();
-        modelShader.setMat4("transform", transform);
-
-        enemy3Model.draw();*/
+        /* Loop each enemy model and render based on default position, scale, and rotation */
+        for (Model enemyModel : enemyModels) enemyModel.draw();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -264,6 +247,7 @@ int main(void)
     }
 
     playerModel.deleteBuffers();
+    for (Model model : enemyModels) model.deleteBuffers();
     skybox.deleteBuffers();
 
     glfwTerminate();
@@ -281,77 +265,91 @@ void Key_Callback(
     int mods      // modifier keys
 ) {
     const float cameraSpeed = 0.1f;
-
-    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-        view_select = 0;
-    }
     
     if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
         pointLight.cycleIntensity();
     }
-    // movement of camera
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        tp_camera.moveForward(cameraSpeed);
-        
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        tp_camera.moveBackward(cameraSpeed);
-       
-        
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        tp_camera.moveLeft(cameraSpeed);
-       
-        
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        tp_camera.moveRight(cameraSpeed);
-        
-        
 
-    // rotation of camera
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        tp_camera.addPitch(cameraSpeed);
-        
-        
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        tp_camera.subPitch(cameraSpeed);
-       
-
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        tp_camera.subYaw(cameraSpeed);
-        
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        tp_camera.addYaw(cameraSpeed);
-        
-
+    // selection of view
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-        view_select = 0;
+        if (view_select == 0) {
+            view_select = 1;
+            curr_view = fp_camera.getView();
+            curr_projection = fp_camera.getProjection();
+            curr_cameraPos = fp_camera.getCameraPos();
+        } else {
+            view_select = 0;
+            curr_view = tp_camera.getView();
+            curr_projection = tp_camera.getProjection();
+            curr_cameraPos = tp_camera.getCameraPos();
+        }
+    } else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+        view_select = 2;
+        curr_view = ortho_camera.getView();
+        curr_projection = ortho_camera.getProjection();
+        curr_cameraPos = ortho_camera.getCameraPos();
     }
 
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {    
-        view_select = 1; 
-    }
-
-    if (view_select == 1) {
-
+    if (view_select == 2) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            ortho_cam.cameraPos.z -= 0.3;
-            ortho_cam.cameraFront.z -= 0.3;  
+            ortho_camera.cameraPos.z -= 0.3;
+            ortho_camera.cameraFront.z -= 0.3;
         }
 
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            ortho_cam.cameraPos.z += 0.3;
-            ortho_cam.cameraFront.z += 0.3;
-        }          
+            ortho_camera.cameraPos.z += 0.3;
+            ortho_camera.cameraFront.z += 0.3;
+        }
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            ortho_cam.cameraPos.x -= 0.3;
-            ortho_cam.cameraFront.x -= 0.3;
+            ortho_camera.cameraPos.x -= 0.3;
+            ortho_camera.cameraFront.x -= 0.3;
         }
-            
+
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            ortho_cam.cameraPos.x += 0.3;
-            ortho_cam.cameraFront.x += 0.3;
+            ortho_camera.cameraPos.x += 0.3;
+            ortho_camera.cameraFront.x += 0.3;
         }
-      
+    } else {
+        // based on movement of player update camera
+        float dx = cameraSpeed * glm::sin(glm::radians(rotX));
+        float dz = cameraSpeed * glm::cos(glm::radians(rotX));
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            playerPos += glm::vec3(dx, 0.0f, dz);
+
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            playerPos -= glm::vec3(dx, 0.0f, dz);
+
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            rotX += cameraSpeed * 10;
+
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            rotX -= cameraSpeed * 10;
+
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+            if(playerPos.y < 0) playerPos.y += cameraSpeed;
+
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+            playerPos.y -= cameraSpeed;
+
+        if (view_select == 0) {
+            float horD = THIRD_POV_X + glm::cos(glm::radians(tp_camera.getPitch()));
+            float verD = THIRD_POV_X + glm::sin(glm::radians(tp_camera.getPitch()));
+            float newX = playerPos.x - horD * glm::sin(glm::radians(rotX));
+            float newZ = playerPos.z - horD * glm::cos(glm::radians(rotX));
+
+            tp_camera.yaw = 90 - rotX;
+            tp_camera.setCameraPos(glm::vec3(newX, playerPos.y + THIRD_POV_Y, newZ));
+        } else if (view_select == 1) {
+            float horD = FIRST_POV_X + glm::cos(glm::radians(fp_camera.getPitch()));
+            float verD = FIRST_POV_X + glm::sin(glm::radians(fp_camera.getPitch()));
+            float newX = playerPos.x - horD * glm::sin(glm::radians(rotX));
+            float newZ = playerPos.z - horD * glm::cos(glm::radians(rotX));
+
+            fp_camera.yaw = 90 - rotX;
+            fp_camera.setCameraPos(glm::vec3(newX, playerPos.y, newZ));
+        }
     }
 }
 
@@ -387,18 +385,23 @@ void Cursor_Callback(
     if (button_down) {
         // determines the distance from the click and the release (offset)
         float xoffset = xpos - last_x;
-        float yoffset = last_y - ypos;
         last_x = xpos;
-        last_y = ypos;
 
         // takes into consideration the intended sensitivity
         float sensitivity = 0.1f;
         xoffset *= sensitivity;
-        yoffset *= sensitivity;
 
         // modifies the yaw and pitch values based on the offset of mouse movement
-        tp_camera.addYaw(xoffset);
-        tp_camera.addPitch(yoffset);
-                    
+        if (view_select == 0) {
+            rotX -= xoffset;
+
+            float horD = THIRD_POV_X + glm::cos(glm::radians(0.0f));
+            float verD = THIRD_POV_X + glm::sin(glm::radians(0.0f));
+            float newX = playerPos.x - horD * glm::sin(glm::radians(rotX));
+            float newZ = playerPos.z - horD * glm::cos(glm::radians(rotX));
+
+            tp_camera.yaw = 90 - rotX;
+            tp_camera.setCameraPos(glm::vec3(newX, playerPos.y + THIRD_POV_Y, newZ));
+        }
     }
 }

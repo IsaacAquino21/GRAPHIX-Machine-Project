@@ -31,11 +31,14 @@ void main(){
 	// tangent
 	vec3 T = normalize(modelMat * m_tan);
 
-	// bitangent
-	vec3 B = normalize(modelMat * m_btan);
-
 	// normal
 	vec3 N = normalize(normCoord);
+
+	// Gram-Schmidt Process
+	T = normalize(T - dot(T, N) * N);
+
+	// bitangent
+	vec3 B = cross(N, T);
 
 	TBN = mat3(T, B, N);
 	
