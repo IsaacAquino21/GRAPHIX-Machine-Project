@@ -29,11 +29,12 @@ public:
         );
     }
 
-    glm::mat4 getProjection() {
-        return projection;
-    }
-
+  
     glm::mat4 getView() {
         return glm::lookAt(getCameraPos(), getCameraFront(), getCameraUp());
+    }
+
+    glm::mat4 getProjection() {
+        return projection;
     }
 };
