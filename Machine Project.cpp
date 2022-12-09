@@ -338,12 +338,14 @@ void Key_Callback(
         if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
             if (playerPos.y < 0) playerPos.y += cameraSpeed;
             pointLight.setLightPos(playerPos);
+            cout << "Depth: " << playerPos.y << endl;
         }
             
 
         if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
             playerPos.y -= cameraSpeed;
             pointLight.setLightPos(playerPos);
+            cout << "Depth: " << playerPos.y << endl;
         }
             
 

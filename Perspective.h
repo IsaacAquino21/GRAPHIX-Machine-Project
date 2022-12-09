@@ -5,7 +5,6 @@
 #include<glm/gtc/type_ptr.hpp>
 
 #include "Camera.h"
-#include "Player.h"
 
 using namespace std;
 
