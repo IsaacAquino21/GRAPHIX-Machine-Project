@@ -141,11 +141,12 @@ int main(void)
     /* Create texture for skybox */
     SkyboxTexture skybox_uwTexture = SkyboxTexture(faceSkybox);
 
-    MyShader modelShaders[4] = {
+    MyShader modelShaders[5] = {
         MyShader("Shaders/main.vert", "Shaders/main.frag"), // with normal mapping
         MyShader("Shaders/noTBN.vert", "Shaders/texture2.frag"), // with 2 textures
         MyShader("Shaders/noTBN.vert", "Shaders/texture1.frag"), // with 1 texture only
-        MyShader("Shaders/noTBN.vert", "Shaders/color.frag") // with no textures (so only color)
+        MyShader("Shaders/noTBN.vert", "Shaders/color.frag"), // with no textures (so only color)
+        MyShader("Shaders/noTBN.vert", "Shaders/sonar.frag") // sonar texture, single color (green)
     };
 
     /* Player contains its Model */
@@ -180,6 +181,14 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    float horD = THIRD_POV_X + glm::cos(glm::radians(tp_camera.getPitch()));
+    float verD = THIRD_POV_X + glm::sin(glm::radians(tp_camera.getPitch()));
+    float newX = playerPos.x - horD * glm::sin(glm::radians(rotX));
+    float newZ = playerPos.z - horD * glm::cos(glm::radians(rotX));
+
+    tp_camera.yaw = 90 - rotX;
+    tp_camera.setCameraPos(glm::vec3(newX, playerPos.y + THIRD_POV_Y, newZ));
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -193,9 +202,6 @@ int main(void)
             curr_view = tp_camera.getView();
             curr_projection = tp_camera.getProjection();
             curr_cameraPos = tp_camera.getCameraPos();
-
-            playerModel.setPosition(playerPos);
-            playerModel.setRotation(rotX, 0.0f, 0.0f);
         } else if (view_select == 1) {
             // first person
             fp_camera.recalculateFront();
@@ -203,13 +209,19 @@ int main(void)
             curr_view = fp_camera.getView();
             curr_projection = fp_camera.getProjection();
             curr_cameraPos = fp_camera.getCameraPos();
+        } else if (view_select == 2) {
+            // ortho person
+            curr_view = ortho_camera.getView();
+            curr_projection = ortho_camera.getProjection();
+            curr_cameraPos = ortho_camera.getCameraPos();
 
-            playerModel.setPosition(playerPos);
-            playerModel.setRotation(rotX, 0.0f, 0.0f);
-            // draw sonar here
+            cout << curr_cameraPos.x << ";" << curr_cameraPos.y << ";" << curr_cameraPos.z << endl;
         }
 
-        skybox.drawSkybox(skyboxShader, curr_view, curr_projection, skybox_uwTexture.getTexture());
+        playerModel.setPosition(playerPos);
+        playerModel.setRotation(rotX, 0.0f, 0.0f);
+
+        if (view_select != 1) skybox.drawSkybox(skyboxShader, curr_view, curr_projection, skybox_uwTexture.getTexture());
 
         // Load All Shaders
         for (MyShader shader : modelShaders) {
@@ -230,14 +242,16 @@ int main(void)
             shader.setVec3("ambientColor2", directionalLight.getAmbientColor());
             shader.setFloat("specStr2", directionalLight.getSpecularStrength());
             shader.setFloat("specPhong2", directionalLight.getSpecularPhong());
-            shader.setFloat("intensity2", directionalLight.getIntensity());
         }
 
         // Draw Player Model
         playerModel.draw();
 
         /* Loop each enemy model and render based on default position, scale, and rotation */
-        for (Model enemyModel : enemyModels) enemyModel.draw();
+        for (Model enemyModel : enemyModels) {
+            if(view_select != 1) enemyModel.draw();
+            else enemyModel.draw(modelShaders[4]);
+        }
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -272,23 +286,13 @@ void Key_Callback(
 
     // selection of view
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-        if (view_select == 0) {
+        if (view_select == 0) 
             view_select = 1;
-            curr_view = fp_camera.getView();
-            curr_projection = fp_camera.getProjection();
-            curr_cameraPos = fp_camera.getCameraPos();
-        } else {
+        else
             view_select = 0;
-            curr_view = tp_camera.getView();
-            curr_projection = tp_camera.getProjection();
-            curr_cameraPos = tp_camera.getCameraPos();
-        }
-    } else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-        view_select = 2;
-        curr_view = ortho_camera.getView();
-        curr_projection = ortho_camera.getProjection();
-        curr_cameraPos = ortho_camera.getCameraPos();
     }
+    else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+        view_select = 2;
 
     if (view_select == 2) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -334,12 +338,14 @@ void Key_Callback(
         if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
             if (playerPos.y < 0) playerPos.y += cameraSpeed;
             pointLight.setLightPos(playerPos);
+            cout << "Depth: " << playerPos.y << endl;
         }
             
 
         if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
             playerPos.y -= cameraSpeed;
             pointLight.setLightPos(playerPos);
+            cout << "Depth: " << playerPos.y << endl;
         }
             
 
