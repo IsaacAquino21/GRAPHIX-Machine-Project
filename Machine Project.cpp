@@ -26,6 +26,7 @@ float view_select = 0;
 glm::mat4 curr_view;
 glm::mat4 curr_projection;
 glm::vec3 curr_cameraPos;
+glm::vec3 curr_Pos;
 
 /* Light Instances */
 Light pointLight = Light(
@@ -189,6 +190,7 @@ int main(void)
 
             playerModel.setPosition(curr_cameraPos.x + 7.5f, curr_cameraPos.y -2.5f, curr_cameraPos.z);
             playerModel.setRotation(-tp_camera.getYaw() + 90.0f, 0.0f, 0.0f);
+
         } else if (view_select == 1) {
             // first person
             curr_view = fp_camera.getView();
@@ -279,8 +281,9 @@ void Key_Callback(
         }
     } else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
         if (view_select == 0) ortho_cam.setCameraPos(glm::vec3(tp_camera.getCameraPos().x, ortho_cam.getCameraPos().y, tp_camera.getCameraPos().z));
-        else ortho_cam.setCameraPos(glm::vec3(fp_camera.getCameraPos().x, ortho_cam.getCameraPos().y, fp_camera.getCameraPos().z));
-        cout << ortho_cam.getCameraPos().x << ";" << ortho_cam.getCameraPos().y << ";" << ortho_cam.getCameraPos().z << endl;
+        else if (view_select ==1) {
+            ortho_cam.setCameraPos(glm::vec3(fp_camera.getCameraPos().x, ortho_cam.getCameraPos().y, fp_camera.getCameraPos().z));          
+        }
         view_select = 2;
     }
 
@@ -322,7 +325,8 @@ void Key_Callback(
 
         if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
             fp_camera.subY(cameraSpeed);
-    } else if (view_select == 2) {
+    } 
+        else if (view_select == 2) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             ortho_cam.cameraPos.z -= 0.3;
             ortho_cam.cameraFront.z -= 0.3;  
